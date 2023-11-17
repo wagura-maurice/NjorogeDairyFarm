@@ -36,7 +36,6 @@
     "react-native-svg": "^14.0.0",
     "react-navigation": "^5.0.0",
     "react-test-renderer": "18.2.0",
-    "tailwind-rn": "^4.2.0",
     "typescript": "4.8.4"
   },
   "engines": {
