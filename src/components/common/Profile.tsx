@@ -36,7 +36,7 @@ const Profile = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#121212', // Dark background color
+    backgroundColor: '#f9f9f9', // Dark background color
   },
   container: {
     alignItems: 'center',
