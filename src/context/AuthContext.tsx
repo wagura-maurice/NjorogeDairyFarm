@@ -1,22 +1,11 @@
 // src/context/AuthContext.js
-import React, { createContext, useState, useCallback } from 'react';
+import React, { createContext, useCallback } from 'react';
 import api from '../utils/api';
 import { storeData, removeData, getData } from '../utils/storage';
-import NotificationModal from '../components/common/NotificationModal'; // Import the NotificationModal
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [isModalVisible, setModalVisible] = useState(false);
-  const [modalMessage, setModalMessage] = useState('');
-  const [modalType, setModalType] = useState('error'); // Type can be 'success', 'warning', 'info', 'danger'
-
-  const showError = (message) => {
-    setModalMessage(message);
-    setModalType('danger');
-    setModalVisible(true);
-  };
-
   const signIn = useCallback(async (email, password) => {
     try {
       const response = await api.post('/auth/sign-in', { email, password });
@@ -26,10 +15,10 @@ export const AuthProvider = ({ children }) => {
         await storeData('userToken', response.data.data.accessToken);
         await storeData('userRoles', JSON.stringify(userData.roles));
       } else {
-        showError(response.data.message);
+        throw new Error(response.data.message);
       }
     } catch (error) {
-      showError('Sign In Error: ' + error.message);
+      throw new Error('Sign In Error: ' + error.message);
     }
   }, []);
 
@@ -42,10 +31,10 @@ export const AuthProvider = ({ children }) => {
         await storeData('userToken', response.data.data.accessToken);
         await storeData('userRoles', JSON.stringify(userData.roles));
       } else {
-        showError(response.data.message);
+        throw new Error(response.data.message);
       }
     } catch (error) {
-      showError('Sign Up Error: ' + error.message);
+      throw new Error('Sign Up Error: ' + error.message);
     }
   }, []);
 
@@ -55,7 +44,7 @@ export const AuthProvider = ({ children }) => {
       await removeData('userData');
       await removeData('userRoles');
     } catch (error) {
-      showError('Sign Out Error: ' + error.message);
+      throw new Error('Sign Out Error: ' + error.message);
     }
   }, []);
 
@@ -65,10 +54,10 @@ export const AuthProvider = ({ children }) => {
       if (response.data.status === 'success') {
         console.log(response.data.message);
       } else {
-        showError(response.data.message);
+        throw new Error(response.data.message);
       }
     } catch (error) {
-      showError('Forgot Password Error: ' + error.message);
+      throw new Error('Forgot Password Error: ' + error.message);
     }
   }, []);
 
@@ -89,12 +78,6 @@ export const AuthProvider = ({ children }) => {
   return (
     <AuthContext.Provider value={{ signIn, signUp, signOut, hasRole, getUserData, forgotPassword }}>
       {children}
-      <NotificationModal
-        isVisible={isModalVisible}
-        type={modalType}
-        message={modalMessage}
-        onClose={() => setModalVisible(false)}
-      />
     </AuthContext.Provider>
   );
 };
