@@ -60,6 +60,3 @@ const styles = StyleSheet.create({
 
 export default SplashScreen;
 
-// if the user is not logged in, we can navigate to the Login screen instead of the Profile screen. We can do this by using the useNavigation hook from React Navigation. We can then use the navigate method to navigate to the Profile screen after 3 seconds. We can also use the useEffect hook to clean up the timer when the component unmounts.
-
-// the navigatin to the login screen should be triiger froma notehr FileReader, i.e somthin that globally availabin anyware in the app
