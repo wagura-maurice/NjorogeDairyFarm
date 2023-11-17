@@ -1,33 +1,31 @@
 // src/components/common/Profile.tsx
 import React from 'react';
-import { SafeAreaView, View, Text, Pressable, StyleSheet } from 'react-native';
-import { IoMdHelpBuoy } from "react-icons/io";
-import { IoSettingsOutline } from "react-icons/io5";
-import { TbLogout } from "react-icons/tb";
-import Avatar from './Avatar';
+import { SafeAreaView, View, Text, Pressable, StyleSheet, Image } from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons'; // Make sure to link this library
+import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons'; // Make sure to link this library
 
 const Profile = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        <Avatar source={{ uri: "https://source.unsplash.com/random" }} />
-        <View style={styles.userInfo}>
-          <Text style={styles.userName}>Joe Bloggs</Text>
-          <Text style={styles.userEmail}>joe@bloggs.com</Text>
-        </View>
+        <Image 
+          source={{ uri: "https://source.unsplash.com/random" }} 
+          style={styles.avatar} 
+        />
+        <Text style={styles.userName}>Joe Bloggs</Text>
+        <Text style={styles.userEmail}>joe@bloggs.com</Text>
       </View>
       <View style={styles.menuContainer}>
         <Pressable style={styles.menuItem}>
-          {/* Replace these icons with React Native compatible icons */}
-          <IoSettingsOutline name="settings-outline" size={24} color="#fff" />
+          <Icon name="settings-outline" size={24} color="#fff" />
           <Text style={styles.menuText}>Settings</Text>
         </Pressable>
         <Pressable style={styles.menuItem}>
-          <IoMdHelpBuoy name="help-buoy-outline" size={24} color="#fff" />
+          <Icon name="help-circle-outline" size={24} color="#fff" />
           <Text style={styles.menuText}>Help</Text>
         </Pressable>
         <Pressable style={styles.menuItem}>
-          <TbLogout name="logout" size={24} color="#fff" />
+          <MaterialIcon name="logout" size={24} color="#fff" />
           <Text style={styles.menuText}>Logout</Text>
         </Pressable>
       </View>
@@ -38,42 +36,42 @@ const Profile = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    width: '100%',
-    backgroundColor: '#1f2937', // Approximation of Tailwind bg-gray-950
+    backgroundColor: '#121212', // Dark background color
   },
   container: {
-    flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 32,
+    paddingTop: 50, // Adjust the padding as needed
   },
-  userInfo: {
-    alignItems: 'center',
-    marginTop: 16,
+  avatar: {
+    width: 120, // Size of the avatar
+    height: 120, // Size of the avatar
+    borderRadius: 60, // Half of width/height to make it round
+    marginTop: 8, // Space between top of the screen and avatar
+    marginBottom: 16, // Space between avatar and text
   },
   userName: {
-    color: '#f9fafb', // Approximation of Tailwind text-gray-50
-    fontSize: 24, // Approximation of Tailwind text-3xl
+    color: '#FFFFFF', // White color for the text
+    fontSize: 26, // Larger text for the name
     fontWeight: 'bold',
+    marginBottom: 4, // Space between name and email
   },
   userEmail: {
-    color: '#f9fafb', // Approximation of Tailwind text-gray-50
-    fontSize: 18, // Approximation of Tailwind text-lg
+    color: '#FFFFFF', // White color for the text
+    fontSize: 16, // Smaller text for the email
+    marginBottom: 36, // Space between email and menu items
   },
   menuContainer: {
-    flex: 1,
-    justifyContent: 'center',
+    alignItems: 'center', // Align menu items to center
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 32,
-    paddingVertical: 8,
+    marginBottom: 24, // Space between menu items
   },
   menuText: {
-    color: '#f9fafb', // Approximation of Tailwind text-gray-50
-    fontSize: 18, // Approximation of Tailwind text-lg
-    marginLeft: 8,
+    color: '#FFFFFF', // White color for the text
+    fontSize: 18, // Text size for menu items
+    marginLeft: 16, // Space between icon and text
   },
 });
 
