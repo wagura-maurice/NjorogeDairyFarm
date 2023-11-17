@@ -1,11 +1,17 @@
 // src/context/AuthContext.js
-import React, { createContext, useCallback } from 'react';
+import React, { createContext, useState, useCallback } from 'react';
 import api from '../utils/api';
 import { storeData, removeData, getData } from '../utils/storage';
+import NotificationModal from '../components/common/NotificationModal'; // Import the NotificationModal
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
+  const [modalType, setModalType] = useState('error'); // Type can be 'success', 'warning', 'info', 'danger'
+
+
   const signIn = useCallback(async (email, password) => {
     try {
       const response = await api.post('/auth/sign-in', { email, password });
@@ -78,6 +84,12 @@ export const AuthProvider = ({ children }) => {
   return (
     <AuthContext.Provider value={{ signIn, signUp, signOut, hasRole, getUserData, forgotPassword }}>
       {children}
+      <NotificationModal
+        isVisible={isModalVisible}
+        type={modalType}
+        message={modalMessage}
+        onClose={() => setModalVisible(false)}
+      />
     </AuthContext.Provider>
   );
 };
