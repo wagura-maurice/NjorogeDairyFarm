@@ -56,7 +56,7 @@ export const AuthProvider = ({ children }) => {
       await removeData('userRoles');
     } catch (error) {
       showError('Sign Out Error: ' + error.message);
- + }
+    }
   }, []);
 
   const forgotPassword = useCallback(async (email) => {
