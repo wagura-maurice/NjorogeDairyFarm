@@ -1,17 +1,37 @@
 // src/navigation/AppNavigator.tsx
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import Splash from '../components/common/SplashScreen';
-import Profile from '../components/common/Profile'; // Import Profile screen
+
+// Importing screens
+import SplashScreen from '../components/common/SplashScreen';
+import ProfileScreen from '../components/common/ProfileScreen';
+// Import other screens as needed
+
+// Importing utility functions if needed
+import { hasRole, getUserData } from '../utils/AuthUtils';
 
 const Stack = createStackNavigator();
 
 const AppNavigator = () => {
+  // You can use hasRole and getUserData here if necessary
+
   return (
-    <Stack.Navigator initialRouteName="Splash">
-      <Stack.Screen name="Splash" component={Splash} options={{ headerShown: false }} />
-      <Stack.Screen name="Profile" component={Profile} />
-      {/* Define other screens/routes here */}
+    <Stack.Navigator initialRouteName="SplashScreen">
+      {/* SplashScreen as the initial route */}
+      <Stack.Screen 
+        name="SplashScreen" 
+        component={SplashScreen} 
+        options={{ headerShown: false }} 
+      />
+      
+      {/* ProfileScreen */}
+      <Stack.Screen 
+        name="ProfileScreen" 
+        component={ProfileScreen}
+        // Add options or configurations if needed
+      />
+
+      {/* Add more screens as needed */}
     </Stack.Navigator>
   );
 };
