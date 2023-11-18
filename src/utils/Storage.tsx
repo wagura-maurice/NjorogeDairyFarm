@@ -1,4 +1,4 @@
-// src/utils/storage.tsx
+// src/utils/Storage.tsx
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const storeData = async (key: string, value: string) => {
