@@ -3,35 +3,24 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 
 // Importing screens
-import SplashScreen from '../components/common/SplashScreen';
 import ProfileScreen from '../components/common/ProfileScreen';
-// Import other screens as needed
+import SplashScreen from '../components/common/SplashScreen';
 
-// Importing utility functions if needed
-import { hasRole, getUserData } from '../utils/AuthUtils';
+import SignInScreen from '../components/auth/SignInScreen';
+import SignUpScreen from '../components/auth/SignUpScreen';
+import ForgotPasswordScreen from '../components/auth/ForgotPasswordScreen';
 
 const Stack = createStackNavigator();
 
 const AppNavigator = () => {
-  // You can use hasRole and getUserData here if necessary
-
   return (
     <Stack.Navigator initialRouteName="SplashScreen">
-      {/* SplashScreen as the initial route */}
-      <Stack.Screen 
-        name="SplashScreen" 
-        component={SplashScreen} 
-        options={{ headerShown: false }} 
-      />
+      <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
+      <Stack.Screen name="SplashScreen" component={SplashScreen} options={{ headerShown: false }} />
       
-      {/* ProfileScreen */}
-      <Stack.Screen 
-        name="ProfileScreen" 
-        component={ProfileScreen}
-        // Add options or configurations if needed
-      />
-
-      {/* Add more screens as needed */}
+      <Stack.Screen name="SignInScreen" component={SignInScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="SignUpScreen" component={SignUpScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="ForgotPasswordScreen" component={ForgotPasswordScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 };
