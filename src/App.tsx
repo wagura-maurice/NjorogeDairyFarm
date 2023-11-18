@@ -6,7 +6,7 @@ import { AuthProvider } from './context/AuthContext'; // Import the AuthProvider
 
 const App = () => {
   return (
-    <AuthProvider> {/* Wrap NavigationContainer with AuthProvider */}
+    <AuthProvider>
       <NavigationContainer>
         <AppNavigator />
       </NavigationContainer>
