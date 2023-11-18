@@ -1,19 +1,46 @@
 // src/components/common/SplashScreen.tsx
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, Image, Animated } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { isSignedIn } from '../../utils/AuthUtils';
 
 const SplashScreen = () => {
   const navigation = useNavigation();
+  const fadeAnim = useRef(new Animated.Value(0)).current; // Initial value for opacity: 0
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      navigation.navigate('ProfileScreen'); // Navigate to Profile screen after 3 seconds
-    }, 3000);
+    // Fade in and out animation
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ]),
+    ).start();
 
-    return () => clearTimeout(timer); // Clean up the timer
-  }, [navigation]);
-    
+    // Check sign-in status and navigate with delay
+    const checkSignInStatus = async () => {
+      const signedIn = await isSignedIn();
+      // Wait for 3 seconds before navigating
+      setTimeout(() => {
+        if (signedIn) {
+          navigation.navigate('ProfileScreen');
+        } else {
+          navigation.navigate('SignInScreen');
+        }
+      }, 3000);
+    };
+
+    checkSignInStatus();
+  }, [fadeAnim, navigation]);
+
   return (
     <View style={styles.container}>
       <View style={styles.circle}>
@@ -23,7 +50,9 @@ const SplashScreen = () => {
           resizeMode="contain"
         />
       </View>
-      <Text style={styles.text}>Loading...</Text>
+      <Animated.Text style={[styles.text, { opacity: fadeAnim }]}>
+        Loading...
+      </Animated.Text>
     </View>
   );
 };
@@ -49,7 +78,7 @@ const styles = StyleSheet.create({
   },
   logo: {
     width: '100%', // Fill the circle
-    height: '100%' // Maintain aspect ratio
+    height: '100%', // Maintain aspect ratio
   },
   text: {
     color: 'white',
@@ -59,4 +88,3 @@ const styles = StyleSheet.create({
 });
 
 export default SplashScreen;
-

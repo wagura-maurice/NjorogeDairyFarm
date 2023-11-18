@@ -1,34 +1,67 @@
 // src/components/common/ProfileScreen.tsx
-import React from 'react';
-import { SafeAreaView, View, Text, Pressable, StyleSheet, Image } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons'; // Make sure to link this library
-import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons'; // Make sure to link this library
+import React, { useContext, useEffect, useState } from 'react';
+import { SafeAreaView, View, Text, StyleSheet, Image, Pressable } from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
+import { AuthContext } from '../../context/AuthContext';
+import NotificationModal from '../common/NotificationModal';
+import { useNavigation } from '@react-navigation/native';
 
 const ProfileScreen = () => {
+  const { signOut, getUserData } = useContext(AuthContext);
+  const navigation = useNavigation();
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
+  const [userData, setUserData] = useState({});
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const userData = await getUserData();
+      setUserData(userData);
+    };
+
+    fetchData();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      setModalMessage('You have been successfully logged out.');
+      setModalVisible(true);
+      setTimeout(() => navigation.replace('SignInScreen'), 1500);
+    } catch (error) {
+      setModalMessage(error.message || 'An error occurred during logout.');
+      setModalVisible(true);
+    }
+  };
+
+  const navigateToCart = () => {
+    // Navigate to the shopping cart screen
+    navigation.navigate('CartScreen'); // Replace 'CartScreen' with the actual route name
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
+      <Pressable onPress={navigateToCart} style={styles.cartButton}>
+        <Icon name="cart-outline" size={30} color="#333" />
+      </Pressable>
       <View style={styles.container}>
-        <Image 
-          source={{ uri: "https://source.unsplash.com/random" }} 
-          style={styles.avatar} 
+        <Image
+          source={{ uri: userData.avatar || "https://via.placeholder.com/120" }}
+          style={styles.avatar}
         />
-        <Text style={styles.userName}>Joe Bloggs</Text>
-        <Text style={styles.userEmail}>joe@bloggs.com</Text>
-      </View>
-      <View style={styles.menuContainer}>
-        <Pressable style={styles.menuItem}>
-          <Icon name="settings-outline" size={24} color="#fff" />
-          <Text style={styles.menuText}>Settings</Text>
-        </Pressable>
-        <Pressable style={styles.menuItem}>
-          <Icon name="help-circle-outline" size={24} color="#fff" />
-          <Text style={styles.menuText}>Help</Text>
-        </Pressable>
-        <Pressable style={styles.menuItem}>
-          <MaterialIcon name="logout" size={24} color="#fff" />
+        <Text style={styles.userName}>{userData.name || 'Username'}</Text>
+        <Text style={styles.userRoles}>{userData.roles ? userData.roles.join(' | ') : 'User Roles'}</Text>
+        <Pressable style={styles.menuItem} onPress={handleLogout}>
+          <Icon name="log-out-outline" size={24} color="#333" />
           <Text style={styles.menuText}>Logout</Text>
         </Pressable>
       </View>
+      <NotificationModal
+        isVisible={modalVisible}
+        message={modalMessage}
+        onClose={() => setModalVisible(false)}
+        type="info"
+      />
     </SafeAreaView>
   );
 };
@@ -36,42 +69,45 @@ const ProfileScreen = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f9f9f9', // Dark background color
+    backgroundColor: '#f0ebe6',
+  },
+  cartButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    padding: 10,
+    zIndex: 1,
   },
   container: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: 50, // Adjust the padding as needed
+    paddingTop: 50,
   },
   avatar: {
-    width: 120, // Size of the avatar
-    height: 120, // Size of the avatar
-    borderRadius: 60, // Half of width/height to make it round
-    marginTop: 8, // Space between top of the screen and avatar
-    marginBottom: 16, // Space between avatar and text
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    marginBottom: 10,
   },
   userName: {
-    color: '#FFFFFF', // White color for the text
-    fontSize: 26, // Larger text for the name
+    fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 4, // Space between name and email
+    marginBottom: 4,
   },
-  userEmail: {
-    color: '#FFFFFF', // White color for the text
-    fontSize: 16, // Smaller text for the email
-    marginBottom: 36, // Space between email and menu items
-  },
-  menuContainer: {
-    alignItems: 'center', // Align menu items to center
+  userRoles: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 20,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 24, // Space between menu items
+    paddingVertical: 10,
   },
   menuText: {
-    color: '#FFFFFF', // White color for the text
-    fontSize: 18, // Text size for menu items
-    marginLeft: 16, // Space between icon and text
+    marginLeft: 10,
+    fontSize: 18,
   },
 });
 
