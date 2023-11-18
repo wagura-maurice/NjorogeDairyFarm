@@ -1,10 +1,10 @@
-// src/components/common/Profile.tsx
+// src/components/common/ProfileScreen.tsx
 import React from 'react';
 import { SafeAreaView, View, Text, Pressable, StyleSheet, Image } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons'; // Make sure to link this library
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons'; // Make sure to link this library
 
-const Profile = () => {
+const ProfileScreen = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
@@ -75,4 +75,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Profile;
+export default ProfileScreen;

@@ -8,7 +8,7 @@ const SplashScreen = () => {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      navigation.navigate('Profile'); // Navigate to Profile screen after 3 seconds
+      navigation.navigate('ProfileScreen'); // Navigate to Profile screen after 3 seconds
     }, 3000);
 
     return () => clearTimeout(timer); // Clean up the timer
