@@ -1,7 +1,7 @@
 // src/context/AuthContext.js
 import React, { createContext, useState, useCallback } from 'react';
-import api from '../utils/api';
-import { storeData, removeData, getData } from '../utils/storage';
+import api from '../utils/API';
+import { storeData, removeData } from '../utils/Storage';
 import NotificationModal from '../components/common/NotificationModal'; // Import the NotificationModal
 
 export const AuthContext = createContext();
@@ -72,22 +72,8 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
- /*  const hasRole = useCallback(async (roleSlug) => {
-    const roles = await getData('userRoles');
-    if (roles) {
-      const rolesArray = JSON.parse(roles);
-      return rolesArray.some(role => role.slug === roleSlug);
-    }
-    return false;
-  }, []);
-
-  const getUserData = useCallback(async () => {
-    const userData = await getData('userData');
-    return userData ? JSON.parse(userData) : null;
-  }, []); */
-
   return (
-    <AuthContext.Provider value={{ signIn, signUp, signOut, /* hasRole, getUserData, */ forgotPassword }}>
+    <AuthContext.Provider value={{ signIn, signUp, signOut, forgotPassword }}>
       {children}
       <NotificationModal
         isVisible={isModalVisible}
