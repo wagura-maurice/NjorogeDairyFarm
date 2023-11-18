@@ -3,11 +3,11 @@ src/
 │   │   ├── fonts/
 │   │   └── images/
 │   ├── components/
-│   │   ├── Auth/
+│   │   ├── auth/
 │   │   │   ├── SignIn.tsx
 │   │   │   ├── SignUp.tsx
 │   │   │   └── ForgotPassword.tsx
-│   │   ├── Administrator/
+│   │   ├── administrator/
 │   │   │   ├── Dashboard.tsx
 │   │   │   ├── UserManagement.tsx
 │   │   │   ├── InventoryManagement.tsx
@@ -15,13 +15,13 @@ src/
 │   │   │   ├── OrderManagement.tsx
 │   │   │   ├── InvoiceManagement.tsx
 │   │   │   └── StatementManagement.tsx
-│   │   ├── Supplier/
+│   │   ├── supplier/
 │   │   │   ├── Dashboard.tsx
 │   │   │   ├── InventoryManagement.tsx
 │   │   │   ├── SupplyManagement.tsx
 │   │   │   ├── InvoiceManagement.tsx
 │   │   │   └── StatementManagement.tsx
-│   │   ├── Client/
+│   │   ├── client/
 │   │   │   ├── Dashboard.tsx
 │   │   │   ├── Marketplace.tsx
 │   │   │   ├── ShoppingCart.tsx
@@ -30,7 +30,7 @@ src/
 │   │   │   ├── OrderTracking.tsx
 │   │   │   ├── OrdersListing.tsx
 │   │   │   └── StatementManagement.tsx
-│   │   ├── Driver/
+│   │   ├── driver/
 │   │   │   ├── Dashboard.tsx
 │   │   │   ├── OrderDelivery.tsx
 │   │   │   ├── DeliveryManagement.tsx
@@ -53,3 +53,6 @@ src/
 │   │   ├── api.tsx
 │   │   └── storage.tsx
 │   └── App.tsx
+
+administrator@njoroge_dairy_farm.devops
+Qwerty123!
