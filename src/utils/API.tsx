@@ -1,6 +1,6 @@
 // src/utils/API.tsx
 import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getData } from './Storage'; // Import the getData function
 
 // Create an Axios instance with a base URL
 const api = axios.create({
@@ -12,8 +12,8 @@ const api = axios.create({
 api.interceptors.request.use(
   async (config) => {
     try {
-      // Retrieve the token from storage
-      const token = await AsyncStorage.getItem('userToken');
+      // Retrieve the token from storage using the getData utility function
+      const token = await getData('userToken');
       if (token) {
         // If token exists, add it to the request headers
         config.headers['Authorization'] = `Bearer ${token}`;
@@ -44,3 +44,4 @@ api.interceptors.response.use(
 );
 
 export default api;
+

@@ -14,3 +14,8 @@ export const getUserData = async () => {
   const userData = await getData('userData');
   return userData ? JSON.parse(userData) : null;
 };
+
+export const isSignedIn = async () => {
+  const userToken = await getData('userToken');
+  return !!userToken; // Returns true if there's a token, false otherwise
+};

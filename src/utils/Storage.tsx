@@ -15,7 +15,7 @@ const getData = async (key: string) => {
     if (value !== null) {
       return value;
     } else {
-      throw new Error('No value found for key: ' + key);
+      return null;
     }
   } catch (error) {
     throw new Error('AsyncStorage Error: ' + error.message);
