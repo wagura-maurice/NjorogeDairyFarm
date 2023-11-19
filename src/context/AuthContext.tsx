@@ -1,7 +1,7 @@
 // src/context/AuthContext.js
 import React, { createContext, useState, useCallback } from 'react';
 import api from '../utils/API';
-import { storeData, removeData } from '../utils/Storage';
+import { storeData, getData, removeData } from '../utils/Storage';
 
 export const AuthContext = createContext();
 
@@ -13,7 +13,9 @@ export const AuthProvider = ({ children }) => {
         const { user, accessToken } = response.data.data;
         await storeData('userData', JSON.stringify(user));
         await storeData('userToken', accessToken);
-        await storeData('userRoles', JSON.stringify(user.roles));
+        // await storeData('userRoles', JSON.stringify(user.roles));
+        const roleNames = user.roles.map(role => role.name);
+        await storeData('userRoles', JSON.stringify(roleNames));
         return 'Sign In Successful';
       } else {
         throw new Error(response.data.message);
@@ -42,7 +44,7 @@ export const AuthProvider = ({ children }) => {
 
   const signOut = useCallback(async () => {
     try {
-      const userToken = await removeData('userToken'); // Get token and then remove it
+      const userToken = await getData('userToken'); // Get token and then remove it
       if (userToken) {
         await api.post('/auth/sign-out', {}, {
           headers: {
@@ -51,6 +53,7 @@ export const AuthProvider = ({ children }) => {
         });
       }
       await removeData('userData');
+      await removeData('userToken');
       await removeData('userRoles');
       return 'Sign Out Successful';
     } catch (error) {
