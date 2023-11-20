@@ -44,14 +44,14 @@ export const AuthProvider = ({ children }) => {
 
   const signOut = useCallback(async () => {
     try {
-      const userToken = await getData('userToken'); // Get token and then remove it
+      /* const userToken = await getData('userToken'); // Get token and then remove it
       if (userToken) {
         await api.post('/auth/sign-out', {}, {
           headers: {
             Authorization: `Bearer ${userToken}`
           }
         });
-      }
+      } */
       await removeData('userData');
       await removeData('userToken');
       await removeData('userRoles');
