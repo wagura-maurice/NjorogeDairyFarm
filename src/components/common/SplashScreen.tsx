@@ -31,7 +31,7 @@ const SplashScreen = () => {
       // Wait for 3 seconds before navigating
       setTimeout(() => {
         if (signedIn) {
-          navigation.navigate('ProfileScreen');
+          navigation.navigate('MarketplaceScreen');
         } else {
           navigation.navigate('SignInScreen');
         }
