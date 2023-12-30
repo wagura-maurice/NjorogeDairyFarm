@@ -1,7 +1,6 @@
 // src/context/CartContext.tsx
 import React, { createContext, useState, ReactNode } from 'react';
 
-// Define the shape of the product item
 interface ProductItem {
   id: string;
   name: string;
@@ -10,31 +9,27 @@ interface ProductItem {
   quantity?: number;
 }
 
-// Define the shape of the context state
 interface CartContextState {
   cart: ProductItem[];
   addToCart: (product: ProductItem) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
+  increaseQuantity: (productId: string) => void;
+  decreaseQuantity: (productId: string) => void;
   clearCart: () => void;
 }
 
-// Create the context with a default value
 export const CartContext = createContext<CartContextState>({
   cart: [],
   addToCart: () => {},
   removeFromCart: () => {},
   updateQuantity: () => {},
+  increaseQuantity: () => {},
+  decreaseQuantity: () => {},
   clearCart: () => {},
 });
 
-// Define the props for the provider
-interface CartProviderProps {
-  children: ReactNode;
-}
-
-// Provider component
-export const CartProvider = ({ children }: CartProviderProps) => {
+export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cart, setCart] = useState<ProductItem[]>([]);
 
   const addToCart = (product: ProductItem) => {
@@ -60,21 +55,60 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     setCart((currentCart) => currentCart.filter((item) => item.id !== productId));
   };
 
-  const updateQuantity = (productId: string, quantity: number) => {
+  const updateQuantity = (productId, newQuantity) => {
+    // If the new quantity is less than 0, we don't do anything
+    if (newQuantity < 0) return;
+  
+    // If the new quantity is 0, we remove the item from the cart
+    if (newQuantity === 0) {
+      removeFromCart(productId);
+      return;
+    }
+  
+    // Otherwise, we update the quantity in the cart
+    setCart((currentCart) => {
+      return currentCart.map((item) => {
+        if (item.id === productId) {
+          // Ensure the quantity is not less than 0
+          const updatedQuantity = Math.max(newQuantity, 0);
+          return { ...item, quantity: updatedQuantity };
+        }
+        return item;
+      });
+    });
+  };  
+
+  const increaseQuantity = (productId) => {
     setCart((currentCart) =>
       currentCart.map((item) =>
-        item.id === productId ? { ...item, quantity: quantity } : item,
+        item.id === productId ? { ...item, quantity: (item.quantity || 0) + 1 } : item,
       ),
     );
   };
+  
+  const decreaseQuantity = (productId) => {
+    setCart((currentCart) => {
+      const newCart = currentCart.map((item) => {
+        if (item.id === productId) {
+          const newQuantity = (item.quantity || 0) - 1;
+          return newQuantity > 0 ? { ...item, quantity: newQuantity } : null;
+        }
+        return item;
+      }).filter(Boolean); // This will remove any `null` items
+  
+      return newCart;
+    });
+  };
 
   const clearCart = () => {
-    setCart([]);
+    setCart([]); // Clears the cart by setting it to an empty array
   };
 
   return (
-    <CartContext.Provider value={{ cart, addToCart, removeFromCart, updateQuantity, clearCart }}>
+    <CartContext.Provider value={{ cart, addToCart, removeFromCart, updateQuantity, increaseQuantity, decreaseQuantity, clearCart }}>
       {children}
     </CartContext.Provider>
   );
 };
+
+export default CartProvider;
