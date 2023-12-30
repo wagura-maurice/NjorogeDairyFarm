@@ -4,7 +4,7 @@ import { getData } from './Storage'; // Import the getData function
 
 // Create an Axios instance with a base URL
 const api = axios.create({
-  baseURL: 'https://dairy.waguramaurice.com/api/',
+  baseURL: 'http://dairy.waguramaurice.com/api',
   // Additional default settings can be added here
 });
 
@@ -14,10 +14,12 @@ api.interceptors.request.use(
     try {
       // Retrieve the token from storage using the getData utility function
       const token = await getData('userToken');
+
       if (token) {
         // If token exists, add it to the request headers
         config.headers['Authorization'] = `Bearer ${token}`;
       }
+      
       return config;
     } catch (error) {
       // Handle error in retrieving token, if necessary
