@@ -29,7 +29,7 @@ const SignInScreen = () => {
     }
     try {
       await signIn(email, password);
-      navigation.navigate('ProfileScreen');
+      navigation.navigate('MarketplaceScreen');
     } catch (error) {
       setModalMessage(error.message);
       setModalVisible(true);
@@ -170,5 +170,3 @@ const styles = StyleSheet.create({
 });
 
 export default SignInScreen;
-
-// is there a way i can move the logo to the left by 1px, just le logo not the circle

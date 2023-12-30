@@ -1,5 +1,4 @@
 // src/components/common/ProfileScreen.tsx
-// src/components/common/ProfileScreen.tsx
 import React, { useContext, useEffect, useState } from 'react';
 import { SafeAreaView, View, Text, StyleSheet, Image, Pressable } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -39,7 +38,7 @@ const ProfileScreen = () => {
 
   const navigateToCart = () => {
     // Navigate to the shopping cart screen
-    // navigation.navigate('CartScreen'); // Replace 'CartScreen' with the actual route name
+    // navigation.navigate('CheckOutScreen'); // Replace 'CheckOutScreen' with the actual route name
   };
 
   // Process roles to a string

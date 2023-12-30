@@ -31,7 +31,7 @@ const SplashScreen = () => {
       // Wait for 3 seconds before navigating
       setTimeout(() => {
         if (signedIn) {
-          navigation.navigate('MarketplaceScreen');
+          navigation.navigate('CustomerOrdersScreen');
         } else {
           navigation.navigate('SignInScreen');
         }
@@ -44,11 +44,11 @@ const SplashScreen = () => {
   return (
     <View style={styles.container}>
       <View style={styles.circle}>
-        <Image 
-          source={require('../../assets/img/logo.png')} 
-          style={styles.logo} 
-          resizeMode="contain"
-        />
+      <Image 
+            source={require('../../assets/img/logo.png')} 
+            style={styles.logo} 
+            resizeMode="contain"
+          />
       </View>
       <Animated.Text style={[styles.text, { opacity: fadeAnim }]}>
         Loading...
@@ -69,8 +69,8 @@ const styles = StyleSheet.create({
     height: 100,
     borderRadius: 50, // Half of width and height to make it a circle
     backgroundColor: 'white',
-    borderWidth: 1,
-    borderColor: 'black',
+    borderWidth: 5,
+    borderColor: 'green',
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden', // This ensures the image does not escape the circle boundaries
@@ -79,6 +79,8 @@ const styles = StyleSheet.create({
   logo: {
     width: '100%', // Fill the circle
     height: '100%', // Maintain aspect ratio
+    marginLeft: -1.5, // Move the logo to the left by 1px
+    marginTop: -1.5, // Move the logo to the top by 1px
   },
   text: {
     color: 'white',
