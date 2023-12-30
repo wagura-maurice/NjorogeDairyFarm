@@ -30,12 +30,16 @@ const useProducts = () => {
     }
     setLoading(false);
   };
+    
+  const refreshProducts = async () => {
+    await fetchProducts();
+  };
 
   useEffect(() => {
     fetchProducts();
   }, []);
 
-  return { products, loading, error, refresh: fetchProducts };
+  return { products, loading, error, refreshProducts };
 };
 
 export default useProducts;
