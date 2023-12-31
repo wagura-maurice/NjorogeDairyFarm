@@ -62,10 +62,17 @@ const CheckOutScreen = () => {
         keyExtractor={(item) => item.id.toString()}
         ListFooterComponent={
           <View style={styles.footer}>
-            <Text style={styles.totalPrice}>TOTAL: {getTotalPrice().toLocaleString('en-US', { style: 'currency', currency: 'KES', maximumFractionDigits: 2 })}</Text>
+            <Text style={styles.totalPrice}>
+              TOTAL: {getTotalPrice().toLocaleString('en-US', { style: 'currency', currency: 'KES', maximumFractionDigits: 2 })}
+            </Text>
             <TouchableOpacity
-              style={styles.checkoutButton}
-              onPress={() => navigation.navigate('CustomerOrderScreen')} // Navigate to CustomerOrderScreen
+              style={[styles.checkoutButton, cart.length === 0 && styles.checkoutButtonDisabled]}
+              onPress={() => {
+                if (cart.length > 0) {
+                  navigation.navigate('CustomerOrderScreen'); // Navigate only if the cart is not empty
+                }
+              }}
+              disabled={cart.length === 0} // Disable the button if the cart is empty
             >
               <Text style={styles.checkoutButtonText}>PROCEED TO CHECKOUT</Text>
             </TouchableOpacity>
@@ -141,6 +148,9 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 5,
     marginTop: 20,
+  },
+  checkoutButtonDisabled: {
+    backgroundColor: 'grey', // Change the color to indicate that it's disabled
   },
   checkoutButtonText: {
     color: 'white',

@@ -8,7 +8,7 @@ import { LocationContext } from '../../context/LocationContext';
 import api from '../../utils/API';
 
 const CustomerOrderScreen = ({ navigation }) => {
-  const { cart } = useContext(CartContext);
+  const { cart, clearCart } = useContext(CartContext);
   const [orderDetailsState, setOrderDetailsState] = useState(null);
   const [invoiceData, setInvoiceData] = useState(null);
   const [transactData, setTransactData] = useState(null);
@@ -96,7 +96,7 @@ const CustomerOrderScreen = ({ navigation }) => {
         } else {
           console.error('Transaction creation failed:', transact);
         }
-
+        clearCart();
         setStep(3);
       } else {
         console.error('Invoice creation failed:', invoice);

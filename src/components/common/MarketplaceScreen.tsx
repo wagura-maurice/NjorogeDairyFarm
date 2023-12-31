@@ -36,8 +36,10 @@ const ProductCard = ({ product }) => {
         source={product.image ? { uri: product.image } : require('../../assets/img/product_placeholder.png')}
         style={styles.productImage}
       />
-      <Text style={styles.productName}>{product.name}</Text>
-      <Text style={styles.productPrice}>KES {product.price}</Text>
+      <View style={styles.productInfo}>
+        <Text style={styles.productName}>{product.name}</Text>
+        <Text style={styles.productPrice}>KES {product.price}</Text>
+      </View>
       {isInCart ? (
         <View style={styles.quantityContainer}>
           <TouchableOpacity onPress={handleDecreaseQuantity} style={styles.quantityButton}>
@@ -141,7 +143,6 @@ const styles = StyleSheet.create({
   card: {
     flex: 1,
     margin: 8,
-    justifyContent: 'space-between',
     borderRadius: 8,
     backgroundColor: '#f9f9f9',
     shadowColor: '#000',
@@ -149,8 +150,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 1,
-    position: 'relative',
-    justifyContent: 'space-between',
   },
   productImage: {
     flex: 0,
@@ -161,8 +160,10 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 8,
     borderTopRightRadius: 8,
   },
+  productInfo: {
+    paddingHorizontal: 8,
+  },
   productName: {
-    flex: 0,
     fontWeight: 'bold',
     padding: 8,
     fontSize: 16,
@@ -170,7 +171,6 @@ const styles = StyleSheet.create({
     minHeight: 20, // Make sure there is space for the text
   },
   productPrice: {
-    flex: 0,
     padding: 8,
     color: '#888',
     fontSize: 14,
@@ -181,10 +181,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-evenly',
     alignItems: 'center',
     paddingVertical: 8,
-    position: 'absolute', // Position the quantity container absolutely
-    bottom: 50, // Height of the addToCartButton
-    left: 0,
-    right: 0,
   },
   quantityButton: {
     justifyContent: 'center',
@@ -202,14 +198,8 @@ const styles = StyleSheet.create({
     padding: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 8,
-    borderBottomLeftRadius: 8,
-    borderBottomRightRadius: 8,
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 40,
+    borderRadius: 8,
+    margin: 8, // Same as card's margin for consistency
   },
   addToCartButtonText: {
     color: 'white',
