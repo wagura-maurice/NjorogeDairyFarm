@@ -4,7 +4,7 @@ import { getData } from './Storage'; // Import the getData function
 
 // Create an Axios instance with a base URL
 const api = axios.create({
-  baseURL: 'http://dairy.waguramaurice.com/api',
+  baseURL: 'https://dairy.waguramaurice.com/api',
   // Additional default settings can be added here
 });
 
