@@ -1,7 +1,7 @@
 // src/context/LocationContext.tsx
 
-import React, { createContext, useState, useEffect, ReactNode } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { createContext, useState, useEffect, ReactNode } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Define the shape of the location data
 type LocationState = {
@@ -22,11 +22,11 @@ interface LocationContextProps {
 // Create the context with a default value
 export const LocationContext = createContext<LocationContextProps>({
   location: {
-    city: '',
-    road: '',
-    street: '',
-    building: '',
-    houseNumber: '',
+    city: "",
+    road: "",
+    street: "",
+    building: "",
+    houseNumber: "",
   },
   saveLocation: async (newLocation: LocationState) => {},
   setLocation: () => {}, // Add this line to provide a stub for setLocation
@@ -38,17 +38,17 @@ type LocationProviderProps = {
 
 export const LocationProvider = ({ children }: LocationProviderProps) => {
   const [location, setLocation] = useState<LocationState>({
-    city: '',
-    road: '',
-    street: '',
-    building: '',
-    houseNumber: '',
+    city: "",
+    road: "",
+    street: "",
+    building: "",
+    houseNumber: "",
   });
 
   useEffect(() => {
     // Load saved location details when the app starts
     const loadLocation = async () => {
-      const savedLocation = await AsyncStorage.getItem('locationDetails');
+      const savedLocation = await AsyncStorage.getItem("locationDetails");
       if (savedLocation) {
         setLocation(JSON.parse(savedLocation));
       }
@@ -60,11 +60,11 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
   const saveLocation = async (newLocation: LocationState) => {
     try {
       const jsonValue = JSON.stringify(newLocation);
-      await AsyncStorage.setItem('locationDetails', jsonValue);
+      await AsyncStorage.setItem("locationDetails", jsonValue);
       setLocation(newLocation);
     } catch (e) {
       // saving error
-      console.error('Error saving location data', e);
+      console.error("Error saving location data", e);
     }
   };
 
