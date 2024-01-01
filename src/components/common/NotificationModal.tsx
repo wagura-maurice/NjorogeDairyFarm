@@ -1,6 +1,13 @@
 // src/components/common/NotificationModal.tsx
-import React, { useEffect, useRef } from 'react';
-import { Modal, View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
+import React, { useEffect, useRef } from "react";
+import {
+  Modal,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Animated,
+} from "react-native";
 
 const NotificationModal = ({ isVisible, type, title, message, onClose }) => {
   const backgroundColor = getBackgroundColor(type);
@@ -43,7 +50,9 @@ const NotificationModal = ({ isVisible, type, title, message, onClose }) => {
       onRequestClose={onClose}
     >
       <View style={styles.centeredView}>
-        <Animated.View style={[styles.modalView, animatedStyle, { backgroundColor }]}>
+        <Animated.View
+          style={[styles.modalView, animatedStyle, { backgroundColor }]}
+        >
           {title && <Text style={styles.title}>{title}</Text>}
           <Text style={styles.message}>{message}</Text>
           <TouchableOpacity onPress={onClose} style={styles.button}>
@@ -57,30 +66,35 @@ const NotificationModal = ({ isVisible, type, title, message, onClose }) => {
 
 const getBackgroundColor = (type) => {
   switch (type) {
-    case 'success': return 'green';
-    case 'warning': return 'orange';
-    case 'info': return 'blue';
-    case 'danger': return 'red';
-    default: return 'gray';
+    case "success":
+      return "green";
+    case "warning":
+      return "orange";
+    case "info":
+      return "blue";
+    case "danger":
+      return "red";
+    default:
+      return "gray";
   }
 };
 
 const styles = StyleSheet.create({
   centeredView: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalView: {
     margin: 20,
     borderRadius: 10,
     padding: 35,
-    alignItems: 'center',
-    shadowColor: '#000',
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 2
+      height: 2,
     },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
@@ -88,11 +102,11 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 15,
   },
   message: {
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 16,
     marginBottom: 20,
   },
@@ -104,8 +118,8 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: "white",
-    fontWeight: 'bold',
-    textAlign: 'center',
+    fontWeight: "bold",
+    textAlign: "center",
   },
 });
 

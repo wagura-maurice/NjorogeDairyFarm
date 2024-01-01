@@ -1,6 +1,6 @@
 // src/components/Avatar.tsx
-import React from 'react';
-import { Image, StyleSheet } from 'react-native';
+import React from "react";
+import { Image, StyleSheet } from "react-native";
 
 export const Avatar = ({ source }) => {
   return <Image source={source} style={styles.avatar} />;

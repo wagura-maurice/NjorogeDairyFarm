@@ -1,5 +1,5 @@
 // src/components/common/MarketplaceScreen.tsx
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext } from "react";
 import {
   View,
   Text,
@@ -9,15 +9,16 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
-  RefreshControl
-} from 'react-native';
-import { CartContext } from '../../context/CartContext';
-import useProducts from '../../hooks/useProducts';
+  RefreshControl,
+} from "react-native";
+import { CartContext } from "../../context/CartContext";
+import useProducts from "../../hooks/useProducts";
 
 const ProductCard = ({ product }) => {
-  const { cart, addToCart, increaseQuantity, decreaseQuantity } = useContext(CartContext);
-  const isInCart = cart.some(item => item.id === product.id);
-  const cartItem = isInCart && cart.find(item => item.id === product.id);
+  const { cart, addToCart, increaseQuantity, decreaseQuantity } =
+    useContext(CartContext);
+  const isInCart = cart.some((item) => item.id === product.id);
+  const cartItem = isInCart && cart.find((item) => item.id === product.id);
 
   // Function to call when the decrease button is pressed
   const handleDecreaseQuantity = () => {
@@ -33,7 +34,11 @@ const ProductCard = ({ product }) => {
   return (
     <View style={styles.card}>
       <Image
-        source={product.image ? { uri: product.image } : require('../../assets/img/product_placeholder.png')}
+        source={
+          product.image
+            ? { uri: product.image }
+            : require("../../assets/img/product_placeholder.png")
+        }
         style={styles.productImage}
       />
       <View style={styles.productInfo}>
@@ -42,16 +47,25 @@ const ProductCard = ({ product }) => {
       </View>
       {isInCart ? (
         <View style={styles.quantityContainer}>
-          <TouchableOpacity onPress={handleDecreaseQuantity} style={styles.quantityButton}>
+          <TouchableOpacity
+            onPress={handleDecreaseQuantity}
+            style={styles.quantityButton}
+          >
             <Text style={styles.quantityButtonText}>-</Text>
           </TouchableOpacity>
           <Text style={styles.quantityText}>{cartItem.quantity}</Text>
-          <TouchableOpacity onPress={() => increaseQuantity(product.id)} style={styles.quantityButton}>
+          <TouchableOpacity
+            onPress={() => increaseQuantity(product.id)}
+            style={styles.quantityButton}
+          >
             <Text style={styles.quantityButtonText}>+</Text>
           </TouchableOpacity>
         </View>
       ) : (
-        <TouchableOpacity onPress={() => addToCart({ ...product, quantity: 1 })} style={styles.addToCartButton}>
+        <TouchableOpacity
+          onPress={() => addToCart({ ...product, quantity: 1 })}
+          style={styles.addToCartButton}
+        >
           <Text style={styles.addToCartButtonText}>ADD TO CART</Text>
         </TouchableOpacity>
       )}
@@ -60,7 +74,7 @@ const ProductCard = ({ product }) => {
 };
 
 const MarketplaceScreen = () => {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const { products, loading, error, refreshProducts } = useProducts();
   const [refreshing, setRefreshing] = useState(false);
 
@@ -73,7 +87,7 @@ const MarketplaceScreen = () => {
     }
     setRefreshing(false);
   }, [refreshProducts]);
-  
+
   if (loading) {
     return <ActivityIndicator size="large" color="#0000ff" />;
   }
@@ -87,7 +101,9 @@ const MarketplaceScreen = () => {
   }
 
   const filteredProducts = searchQuery
-    ? products.filter((product) => product.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    ? products.filter((product) =>
+        product.name.toLowerCase().includes(searchQuery.toLowerCase())
+      )
     : products;
 
   return (
@@ -101,12 +117,14 @@ const MarketplaceScreen = () => {
         />
       </View>
       <FlatList
-        columnWrapperStyle={{ justifyContent: 'space-between' }} // Add this lin
+        columnWrapperStyle={{ justifyContent: "space-between" }} // Add this lin
         data={filteredProducts}
         renderItem={({ item }) => <ProductCard key={item.id} product={item} />}
         keyExtractor={(item) => item.id.toString()}
         numColumns={2}
-        ListEmptyComponent={<Text style={styles.noProducts}>No products found.</Text>}
+        ListEmptyComponent={
+          <Text style={styles.noProducts}>No products found.</Text>
+        }
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -122,30 +140,30 @@ const MarketplaceScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f0ebe6',
+    backgroundColor: "#f0ebe6",
     paddingHorizontal: 8,
   },
   header: {
     // Style for the header if needed
   },
   searchInput: {
-    width: '100%',
+    width: "100%",
     height: 50,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     borderWidth: 2.5,
     borderRadius: 15,
     padding: 8,
     fontSize: 16,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: "#f9f9f9",
     marginVertical: 10,
-    textAlign: 'center',
+    textAlign: "center",
   },
   card: {
     flex: 1,
     margin: 8,
     borderRadius: 8,
-    backgroundColor: '#f9f9f9',
-    shadowColor: '#000',
+    backgroundColor: "#f9f9f9",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -153,10 +171,10 @@ const styles = StyleSheet.create({
   },
   productImage: {
     flex: 0,
-    width: '100%',
+    width: "100%",
     height: undefined,
     aspectRatio: 1,
-    resizeMode: 'cover',
+    resizeMode: "cover",
     borderTopLeftRadius: 8,
     borderTopRightRadius: 8,
   },
@@ -164,59 +182,59 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   productName: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
     padding: 8,
     fontSize: 16,
-    textTransform: 'capitalize',
+    textTransform: "capitalize",
     minHeight: 20, // Make sure there is space for the text
   },
   productPrice: {
     padding: 8,
-    color: '#888',
+    color: "#888",
     fontSize: 14,
     minHeight: 20, // Make sure there is space for the text
   },
   quantityContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+    alignItems: "center",
     paddingVertical: 8,
   },
   quantityButton: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#ccc', // You can adjust the color as needed
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#ccc", // You can adjust the color as needed
     padding: 10, // You can adjust the padding as needed
     borderRadius: 5, // You can adjust the border radius as needed
   },
   quantityButtonText: {
     fontSize: 18, // You can adjust the font size as needed
-    color: 'black', // You can adjust the color as needed
+    color: "black", // You can adjust the color as needed
   },
   addToCartButton: {
-    backgroundColor: 'green',
+    backgroundColor: "green",
     padding: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderRadius: 8,
     margin: 8, // Same as card's margin for consistency
   },
   addToCartButtonText: {
-    color: 'white',
+    color: "white",
     fontSize: 12,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   centered: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   noProducts: {
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 18,
-    color: '#888',
+    color: "#888",
     marginTop: 50,
-  }
+  },
 });
 
 export default MarketplaceScreen;

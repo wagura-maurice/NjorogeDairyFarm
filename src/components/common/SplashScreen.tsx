@@ -1,8 +1,8 @@
 // src/components/common/SplashScreen.tsx
-import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Image, Animated } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { isSignedIn } from '../../utils/AuthUtils';
+import React, { useEffect, useRef } from "react";
+import { View, Text, StyleSheet, Image, Animated } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { isSignedIn } from "../../utils/AuthUtils";
 
 const SplashScreen = () => {
   const navigation = useNavigation();
@@ -22,7 +22,7 @@ const SplashScreen = () => {
           duration: 1000,
           useNativeDriver: true,
         }),
-      ]),
+      ])
     ).start();
 
     // Check sign-in status and navigate with delay
@@ -31,9 +31,9 @@ const SplashScreen = () => {
       // Wait for 3 seconds before navigating
       setTimeout(() => {
         if (signedIn) {
-          navigation.navigate('MarketplaceScreen');
+          navigation.navigate("MarketplaceScreen");
         } else {
-          navigation.navigate('SignInScreen');
+          navigation.navigate("SignInScreen");
         }
       }, 3000);
     };
@@ -44,11 +44,11 @@ const SplashScreen = () => {
   return (
     <View style={styles.container}>
       <View style={styles.circle}>
-      <Image 
-            source={require('../../assets/img/logo.png')} 
-            style={styles.logo} 
-            resizeMode="contain"
-          />
+        <Image
+          source={require("../../assets/img/logo.png")}
+          style={styles.logo}
+          resizeMode="contain"
+        />
       </View>
       <Animated.Text style={[styles.text, { opacity: fadeAnim }]}>
         Loading...
@@ -60,32 +60,32 @@ const SplashScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#90EE90', // Light green background
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#90EE90", // Light green background
   },
   circle: {
     width: 100,
     height: 100,
     borderRadius: 50, // Half of width and height to make it a circle
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderWidth: 5,
-    borderColor: 'green',
-    justifyContent: 'center',
-    alignItems: 'center',
-    overflow: 'hidden', // This ensures the image does not escape the circle boundaries
+    borderColor: "green",
+    justifyContent: "center",
+    alignItems: "center",
+    overflow: "hidden", // This ensures the image does not escape the circle boundaries
     marginBottom: 20, // Space between circle and text
   },
   logo: {
-    width: '100%', // Fill the circle
-    height: '100%', // Maintain aspect ratio
+    width: "100%", // Fill the circle
+    height: "100%", // Maintain aspect ratio
     marginLeft: -1.5, // Move the logo to the left by 1px
     marginTop: -1.5, // Move the logo to the top by 1px
   },
   text: {
-    color: 'white',
+    color: "white",
     fontSize: 20,
-    textAlign: 'center', // Center text horizontally
+    textAlign: "center", // Center text horizontally
   },
 });
 
