@@ -1,6 +1,6 @@
 // src/hooks/useOrders.tsx
-import { useState, useEffect } from 'react';
-import api from '../utils/API';
+import { useState, useEffect } from "react";
+import api from "../utils/API";
 
 interface Order {
   id: number;
@@ -48,14 +48,16 @@ interface FilterOptions {
 }
 
 const useOrders = (customerId?: number, filterOptions?: FilterOptions) => {
-  const [ordersResponse, setOrdersResponse] = useState<OrderResponse | null>(null);
+  const [ordersResponse, setOrdersResponse] = useState<OrderResponse | null>(
+    null
+  );
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      let url = '/order/catalog';
+      let url = "/order/catalog";
 
       // Array to hold query parameters
       const queryParams = [];
@@ -69,24 +71,26 @@ const useOrders = (customerId?: number, filterOptions?: FilterOptions) => {
       if (filterOptions) {
         for (const key in filterOptions) {
           if (filterOptions[key]) {
-            queryParams.push(`${key}=${encodeURIComponent(filterOptions[key])}`);
+            queryParams.push(
+              `${key}=${encodeURIComponent(filterOptions[key])}`
+            );
           }
         }
       }
 
       // Construct the full URL with query parameters
       if (queryParams.length) {
-        url += `?${queryParams.join('&')}`;
+        url += `?${queryParams.join("&")}`;
       }
 
       const response = await api.get(url);
       if (response && response.data) {
         setOrdersResponse(response.data);
       } else {
-        setError('No data received');
+        setError("No data received");
       }
     } catch (err) {
-      setError('Failed to fetch orders');
+      setError("Failed to fetch orders");
       console.error(err);
     }
     setLoading(false);
@@ -96,12 +100,12 @@ const useOrders = (customerId?: number, filterOptions?: FilterOptions) => {
     fetchOrders();
   }, [customerId, JSON.stringify(filterOptions)]); // Depend on both customerId and filterOptions
 
-  return { 
-    orders: ordersResponse?.data, 
-    pagination: ordersResponse?.meta, 
-    loading, 
-    error, 
-    refresh: fetchOrders 
+  return {
+    orders: ordersResponse?.data,
+    pagination: ordersResponse?.meta,
+    loading,
+    error,
+    refresh: fetchOrders,
   };
 };
 

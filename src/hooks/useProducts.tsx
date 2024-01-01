@@ -1,6 +1,6 @@
 // src/hooks/useProducts.tsx
-import { useState, useEffect } from 'react';
-import api from '../utils/API';
+import { useState, useEffect } from "react";
+import api from "../utils/API";
 
 interface Product {
   id: number;
@@ -19,18 +19,18 @@ const useProducts = () => {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const response = await api.get('/produce/category');
+      const response = await api.get("/produce/category");
       if (response && response.data) {
         setProducts(response.data.data); // Adjust this line based on the actual data structure
       } else {
-        setError('No data received');
+        setError("No data received");
       }
     } catch (err) {
-      setError('Failed to fetch products');
+      setError("Failed to fetch products");
     }
     setLoading(false);
   };
-    
+
   const refreshProducts = async () => {
     await fetchProducts();
   };
