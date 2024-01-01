@@ -1,11 +1,11 @@
 // src/utils/Storage.tsx
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const storeData = async (key: string, value: string) => {
   try {
     await AsyncStorage.setItem(key, value);
   } catch (error) {
-    throw new Error('AsyncStorage Error: ' + error.message);
+    throw new Error("AsyncStorage Error: " + error.message);
   }
 };
 
@@ -18,7 +18,7 @@ const getData = async (key: string) => {
       return null;
     }
   } catch (error) {
-    throw new Error('AsyncStorage Error: ' + error.message);
+    throw new Error("AsyncStorage Error: " + error.message);
   }
 };
 
@@ -26,7 +26,7 @@ const removeData = async (key: string) => {
   try {
     await AsyncStorage.removeItem(key);
   } catch (error) {
-    throw new Error('AsyncStorage Error: ' + error.message);
+    throw new Error("AsyncStorage Error: " + error.message);
   }
 };
 
