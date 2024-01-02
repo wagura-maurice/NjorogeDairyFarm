@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-               BuildableName = "NjorogeDairyFarm.app"
-               BlueprintName = "NjorogeDairyFarm"
-               ReferencedContainer = "container:NjorogeDairyFarm.xcodeproj">
+               BuildableName = "Njoroge Dairy Farm.app"
+               BlueprintName = "Njoroge Dairy Farm"
+               ReferencedContainer = "container:Njoroge Dairy Farm.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "00E356ED1AD99517003FC87E"
-               BuildableName = "NjorogeDairyFarmTests.xctest"
-               BlueprintName = "NjorogeDairyFarmTests"
-               ReferencedContainer = "container:NjorogeDairyFarm.xcodeproj">
+               BuildableName = "Njoroge Dairy FarmTests.xctest"
+               BlueprintName = "Njoroge Dairy FarmTests"
+               ReferencedContainer = "container:Njoroge Dairy Farm.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,9 +55,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "NjorogeDairyFarm.app"
-            BlueprintName = "NjorogeDairyFarm"
-            ReferencedContainer = "container:NjorogeDairyFarm.xcodeproj">
+            BuildableName = "Njoroge Dairy Farm.app"
+            BlueprintName = "Njoroge Dairy Farm"
+            ReferencedContainer = "container:Njoroge Dairy Farm.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -72,9 +72,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "NjorogeDairyFarm.app"
-            BlueprintName = "NjorogeDairyFarm"
-            ReferencedContainer = "container:NjorogeDairyFarm.xcodeproj">
+            BuildableName = "Njoroge Dairy Farm.app"
+            BlueprintName = "Njoroge Dairy Farm"
+            ReferencedContainer = "container:Njoroge Dairy Farm.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
