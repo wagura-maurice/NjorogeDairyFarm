@@ -3,10 +3,10 @@ import React, { useContext, useState, useEffect } from "react";
 import { createStackNavigator } from "@react-navigation/stack";
 import { TouchableOpacity, View, Text, StyleSheet } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import MarketplaceScreen from "../components/common/MarketplaceScreen";
-import CheckOutScreen from "../components/common/CheckOutScreen";
-import CustomerOrderScreen from "../components/common/CustomerOrderScreen";
-import CustomerOrdersScreen from "../components/common/CustomerOrdersScreen";
+import MarketplaceScreen from "../components/customer/MarketplaceScreen";
+import CheckOutScreen from "../components/customer/CheckOutScreen";
+import OrderProcessingScreen from "../components/customer/OrderProcessingScreen";
+import OrderListingScreen from "../components/customer/OrderListingScreen";
 import ProfileScreen from "../components/common/ProfileScreen";
 import SplashScreen from "../components/common/SplashScreen";
 import SignInScreen from "../components/auth/SignInScreen";
@@ -16,6 +16,7 @@ import NotificationModal from "../components/common/NotificationModal";
 import { CartContext } from "../context/CartContext";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigation } from "@react-navigation/native";
+import BottomTabNavigator from './BottomTabNavigator';
 
 const Stack = createStackNavigator();
 
@@ -33,9 +34,8 @@ const AppNavigator = () => {
       await signOut();
       setModalMessage("You have been successfully logged out.");
       setModalVisible(true);
-      // Directly use the navigation from the hook's scope
       timeoutHandle = setTimeout(() => {
-        navigation.navigate("SignInScreen"); // Use navigate instead of replace
+        navigation.navigate("SignInScreen");
       }, 1500);
     } catch (error) {
       setModalMessage(error.message || "An error occurred during logout.");
@@ -51,14 +51,45 @@ const AppNavigator = () => {
     };
   }, []);
 
-  const authScreenOptions = () => {
-    const navigation = useNavigation(); // Call useNavigation within the function scope
+  const authScreenOptions = ({ navigation, route }) => {
+    // Define a list of authenticated screen names
+    const authenticatedScreens = [
+      "MarketplaceScreen",
+      "CheckOutScreen",
+      "OrderProcessingScreen",
+      "OrderListingScreen",
+      "ProfileScreen",
+    ];
+
+    // Function to check if the previous route is an authenticated screen
+    const canGoBackToAuthenticatedScreen = () => {
+      const currentRouteIndex = navigation.getState().index;
+      if (currentRouteIndex === 0) {
+        // If we are on the first screen, can't go back
+        return false;
+      }
+      // Get the route name of the previous screen
+      const previousRouteName = navigation.getState().routes[currentRouteIndex - 1].name;
+      // Check if the previous screen is an authenticated screen
+      return authenticatedScreens.includes(previousRouteName);
+    };
 
     return {
       headerLeft: () => (
-        <TouchableOpacity style={styles.iconLeft} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={30} color="#000" />
-        </TouchableOpacity>
+        canGoBackToAuthenticatedScreen() ? (
+          <TouchableOpacity style={styles.iconLeft} onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back-outline" size={30} color="#000" />
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity style={styles.iconLeft} onPress={handleLogout}>
+            <Ionicons name="power-outline" size={30} color="#000" />
+          </TouchableOpacity>
+        )
+      ),
+      headerTitle: () => (
+        <View style={styles.headerTitle}>
+          <Text style={styles.headerTitleText}>NJOROGE DAIRY FARM</Text>
+        </View>
       ),
       headerRight: () => (
         <View style={styles.iconRightContainer}>
@@ -75,11 +106,6 @@ const AppNavigator = () => {
           </TouchableOpacity>
         </View>
       ),
-      headerTitle: () => (
-        <View style={styles.headerTitle}>
-          <Text style={styles.headerTitleText}>NJOROGE DAIRY FARM</Text>
-        </View>
-      ),
       headerStyle: {
         elevation: 0, // Remove shadow on Android
         shadowOpacity: 0, // Remove shadow on iOS
@@ -88,7 +114,6 @@ const AppNavigator = () => {
       headerTintColor: "#ffffff", // Set the color of the back button and title, if necessary
       headerTitleStyle: {
         fontWeight: "bold",
-        // Add color property if you want to change the title color
         color: "#ffffff", // This sets the header title color to white
       },
     };
@@ -108,13 +133,13 @@ const AppNavigator = () => {
         options={authScreenOptions}
       />
       <Stack.Screen
-        name="CustomerOrderScreen"
-        component={CustomerOrderScreen}
+        name="OrderProcessingScreen"
+        component={OrderProcessingScreen}
         options={authScreenOptions}
       />
       <Stack.Screen
-        name="CustomerOrdersScreen"
-        component={CustomerOrdersScreen}
+        name="OrderListingScreen"
+        component={OrderListingScreen}
         options={authScreenOptions}
       />
       <Stack.Screen
@@ -144,23 +169,30 @@ const AppNavigator = () => {
         component={ForgotPasswordScreen}
         options={{ headerShown: false }}
       />
+      <Stack.Screen
+        name="HomeTabs"
+        component={BottomTabNavigator}
+        options={{ headerShown: false }}
+      />
     </Stack.Navigator>
   );
 };
 
 const styles = StyleSheet.create({
+  iconLeft: {
+    paddingLeft: 16,
+    width: 50, // Adjust the width to match the headerRight button width
+  },
   headerTitle: {
-    flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    flex: 1,
   },
   headerTitleText: {
     fontWeight: "bold",
     fontSize: 18,
     textTransform: "uppercase",
-  },
-  iconLeft: {
-    paddingLeft: 16,
+    textAlign: "center", // Ensure the text itself is centered within the title view
   },
   iconRightContainer: {
     paddingRight: 16,
@@ -172,12 +204,12 @@ const styles = StyleSheet.create({
   },
   cartBadge: {
     position: "absolute",
-    right: -10, // Adjust the right position to move the badge to the left side of the icon
-    top: -3, // Adjust the top position as needed
+    right: -10,
+    top: -3,
     backgroundColor: "#f68b1e",
     borderRadius: 15,
-    width: 24, // Adjust the width as needed
-    height: 24, // Adjust the height as needed
+    width: 24,
+    height: 24,
     justifyContent: "center",
     alignItems: "center",
     zIndex: 1,
