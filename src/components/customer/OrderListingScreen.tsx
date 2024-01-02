@@ -81,7 +81,7 @@ const OrderListingScreen = () => {
       <View style={styles.header}>
         <TextInput
           style={styles.searchInput}
-          placeholder="Search for orders..."
+          placeholder="Search for products ordered..."
           onChangeText={setSearchQuery}
           value={searchQuery}
         />
