@@ -13,10 +13,12 @@ import { AuthContext } from "../../context/AuthContext";
 import NotificationModal from "../common/NotificationModal";
 import { validateEmail } from "../../utils/Validation";
 import CheckBox from "@react-native-community/checkbox";
+import Icon from "react-native-vector-icons/Ionicons";
 
 const SignInScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordVisibility, setPasswordVisibility] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
@@ -69,20 +71,33 @@ const SignInScreen = () => {
         keyboardType="email-address"
         autoCapitalize="none"
       />
-      <TextInput
-        style={styles.input}
-        placeholder="Enter password"
-        placeholderTextColor="#666"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
+      <View style={styles.passwordContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter password"
+          placeholderTextColor="#666"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry={!passwordVisibility}
+        />
+        <TouchableOpacity
+          onPress={() => setPasswordVisibility(!passwordVisibility)}
+          style={styles.eyeIcon}
+        >
+          <Icon
+            name={passwordVisibility ? "eye-off" : "eye"}
+            size={25}
+            color="#333"
+            style={{ opacity: 0.5 }} // This will make the icon more faded
+          />
+        </TouchableOpacity>
+      </View>
       <View style={styles.checkboxContainer}>
         <CheckBox
           value={rememberMe}
           onValueChange={setRememberMe}
           style={styles.checkbox}
-          tintColors={{ true: "#00FF00", false: "#333" }} // Optional: customize checkbox colors
+          tintColors={{ true: "#00FF00", false: "#333" }}
         />
         <Text style={styles.label}>Remember me</Text>
       </View>
@@ -116,20 +131,20 @@ const styles = StyleSheet.create({
   circle: {
     width: 100,
     height: 100,
-    borderRadius: 50, // Half of width and height to make it a circle
+    borderRadius: 50,
     backgroundColor: "white",
     borderWidth: 5,
     borderColor: "green",
     justifyContent: "center",
     alignItems: "center",
-    overflow: "hidden", // This ensures the image does not escape the circle boundaries
-    marginBottom: 20, // Space between circle and text
+    overflow: "hidden",
+    marginBottom: 20,
   },
   logo: {
-    width: "100%", // Fill the circle
-    height: "100%", // Maintain aspect ratio
-    marginLeft: -1.5, // Move the logo to the left by 1px
-    marginTop: -1.5, // Move the logo to the top by 1px
+    width: "100%",
+    height: "100%",
+    marginLeft: -1.5,
+    marginTop: -1.5,
   },
   input: {
     width: "100%",
@@ -141,17 +156,35 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     color: "#333",
   },
-  checkboxContainer: {
+  passwordContainer: {
     flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
+    position: "relative",
+  },
+  eyeIcon: {
+    position: "absolute",
+    right: 10,
+    height: "100%",
+    justifyContent: "center",
+    padding: 15,
+  },
+  eyeIconImage: {
+    width: 25,
+    height: 25,
+  },
+  checkboxContainer: {
+    flexDirection: "row", // Set back to row for inline elements
+    alignItems: "center", // Vertically align checkbox and label
+    width: "100%",
     marginBottom: 20,
-    alignItems: "center", // Ensure checkbox and label are vertically aligned
   },
   checkbox: {
     marginRight: 8,
   },
   label: {
     color: "#333",
-    marginLeft: 8, // Add space between checkbox and label
   },
   button: {
     width: "100%",
