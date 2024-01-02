@@ -108,7 +108,7 @@ const OrderListingScreen = () => {
             <Text style={styles.cardText}>
               Total Amount: KES {item.total_amount}
             </Text>
-            <Text style={styles.status}>STATUS: {STATUS_MAP[item._status]}</Text>
+            <Text style={styles.status}>{STATUS_MAP[item._status]}</Text>
           </View>
         </View>
       )}
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
   status: {
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: "500",
     color: "green",
     marginTop: 8,
