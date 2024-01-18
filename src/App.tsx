@@ -19,7 +19,7 @@ const App = () => {
           </LocationProvider>
         </CartProvider>
       </AuthProvider>
-      <Toast ref={(ref) => Toast.setRef(ref)} />
+      <Toast />
     </>
   );
 };
