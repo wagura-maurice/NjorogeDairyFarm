@@ -45,7 +45,9 @@ const CheckOutScreen = () => {
       />
       <View style={styles.detailsContainer}>
         <Text style={styles.productName}>{item.name}</Text>
-        <Text style={styles.productPrice}>KES {item.price}</Text>
+        <Text style={styles.productPrice}>
+          {new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES' }).format(item.price)}
+        </Text>
         <View style={styles.quantityContainer}>
           <TouchableOpacity
             onPress={() => handleDecreaseQuantity(item.id, item.quantity)}
@@ -84,12 +86,7 @@ const CheckOutScreen = () => {
         ListFooterComponent={
           <View style={styles.footer}>
             <Text style={styles.totalPrice}>
-              TOTAL:{" "}
-              {getTotalPrice().toLocaleString("en-US", {
-                style: "currency",
-                currency: "KES",
-                maximumFractionDigits: 2,
-              })}
+              TOTAL: {new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES' }).format(getTotalPrice())}
             </Text>
             <TouchableOpacity
               style={[
@@ -141,12 +138,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   productName: {
+    fontSize: 16,
     fontWeight: "bold",
     textTransform: "capitalize",
+    margin: 4,
   },
   productPrice: {
-    fontSize: 16,
-    color: "green",
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: "#b37400",
+    margin: 4,
   },
   quantityContainer: {
     flexDirection: "row",
@@ -159,21 +160,23 @@ const styles = StyleSheet.create({
     color: "grey",
   },
   removeButton: {
-    backgroundColor: "red",
+    backgroundColor: "#ff1a1a",
     padding: 5,
     borderRadius: 5,
   },
   removeButtonText: {
     color: "white",
     textAlign: "center",
+    fontWeight: "bold",
   },
   totalPrice: {
     textAlign: "center",
     fontSize: 16,
     fontWeight: "bold",
+    color: "#b37400",
   },
   checkoutButton: {
-    backgroundColor: "green",
+    backgroundColor: "#00b31a",
     padding: 10,
     borderRadius: 5,
     marginTop: 20,
@@ -189,7 +192,7 @@ const styles = StyleSheet.create({
   footer: {
     marginTop: 10,
     borderTopWidth: 1,
-    borderTopColor: "grey",
+    borderTopColor: "#00b31a",
     paddingVertical: 20,
   },
   quantityButton: {

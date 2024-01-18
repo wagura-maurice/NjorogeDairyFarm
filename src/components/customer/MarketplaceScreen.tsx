@@ -10,10 +10,10 @@ import {
   TextInput,
   ActivityIndicator,
   RefreshControl,
-  Alert,
 } from 'react-native';
 import { CartContext } from '../../context/CartContext';
 import useProducts from '../../hooks/useProducts';
+import Toast from 'react-native-toast-message';
 
 const ProductCard = ({ product }) => {
   const { cart, addToCart, increaseQuantity, decreaseQuantity } = useContext(CartContext);
@@ -39,7 +39,9 @@ const ProductCard = ({ product }) => {
       />
       <View style={styles.productInfo}>
         <Text style={styles.productName}>{product.name}</Text>
-        <Text style={styles.productPrice}>KES {product.price}</Text>
+        <Text style={styles.productPrice}>
+          {new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES' }).format(product.price)}
+        </Text>
       </View>
       {isInCart ? (
         <View style={styles.quantityContainer}>
@@ -68,9 +70,14 @@ const MarketplaceScreen = () => {
   const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
     try {
-      await refreshProducts(); // Use the refreshProducts method from the hook
+      await refreshProducts();
     } catch (error) {
-      Alert.alert("Error refreshing products:", error);
+      Toast.show({
+        type: 'error',
+        position: 'bottom',
+        text1: 'Error refreshing products:',
+        text2: error.message
+      });
     }
     setRefreshing(false);
   }, [refreshProducts]);
@@ -126,9 +133,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0ebe6',
     paddingHorizontal: 8,
   },
-  header: {
-    // Style for the header if needed
-  },
   searchInput: {
     width: '100%',
     height: 50,
@@ -138,7 +142,7 @@ const styles = StyleSheet.create({
     padding: 8,
     fontSize: 16,
     backgroundColor: '#f9f9f9',
-    marginVertical: 10,
+    marginBottom: 5,
     textAlign: 'center',
   },
   card: {
@@ -166,14 +170,15 @@ const styles = StyleSheet.create({
   },
   productName: {
     fontWeight: 'bold',
-    padding: 8,
+    padding: 5,
     fontSize: 16,
     textTransform: 'capitalize',
     minHeight: 20,
   },
   productPrice: {
-    padding: 8,
-    color: '#888',
+    padding: 5,
+    color: '#b37400',
+    fontWeight: 'bold',
     fontSize: 14,
     minHeight: 20,
   },
@@ -195,7 +200,7 @@ const styles = StyleSheet.create({
     color: 'black',
   },
   addToCartButton: {
-    backgroundColor: 'green',
+    backgroundColor: '#00b31a',
     padding: 10,
     justifyContent: 'center',
     alignItems: 'center',
