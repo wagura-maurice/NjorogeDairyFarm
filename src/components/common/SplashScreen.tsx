@@ -1,28 +1,23 @@
 // src/components/common/SplashScreen.tsx
-import React, { useEffect, useRef, useState } from "react";
-import { View, Text, StyleSheet, Image, Animated } from "react-native";
+import React, { useEffect, useRef } from "react";
+import { View, Text, Animated, StyleSheet, Image } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { isSignedIn } from "../../utils/AuthUtils";
 import { getData } from "../../utils/Storage";
 
 const SplashScreen = () => {
   const navigation = useNavigation();
   const fadeAnim = useRef(new Animated.Value(0)).current; // Initial value for opacity: 0
 
-  const [userData, setUserData] = useState(null);
+  // Function to navigate to the screen based on user roles
+  const navigateBasedOnRoles = (roles) => {
+    if (roles.includes('customer')) {
+      navigation.navigate("MarketplaceScreen");
+    } else if (roles.includes('supplier') || roles.includes('driver')) {
+      navigation.navigate("OrderListingScreen");
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      const userDataJson = await getData("userData");
-      const userData = userDataJson ? JSON.parse(userDataJson) : null;
-      setUserData(userData);
-    };
-
-    fetchData();
-  }, []);
-  
-  useEffect(() => {
-    // Fade in and out animation
     Animated.loop(
       Animated.sequence([
         Animated.timing(fadeAnim, {
@@ -38,29 +33,21 @@ const SplashScreen = () => {
       ])
     ).start();
 
-    // Check sign-in status and navigate with delay
-    const checkSignInStatus = async () => {
-      const signedIn = await isSignedIn();
-      // Wait for 3 seconds before navigating
-      setTimeout(() => {
-        if (signedIn && userData) {
-          if (userData.customer && userData.customer.id) {
-            navigation.navigate("MarketplaceScreen");
-          } else if (userData.supplier && userData.supplier.id) {
-            navigation.navigate("MarketplaceScreen");
-          } else if (userData.driver && userData.driver.id) {
-            navigation.navigate("MarketplaceScreen");
-          } else {
-            navigation.navigate("MarketplaceScreen");
-          }
-        } else {
-          navigation.navigate("SignInScreen");
-        }
-      }, 3000);      
+    // Fetch user roles and navigate based on the roles
+    const initializeApp = async () => {
+      const rolesJson = await getData("userRoles");
+      if (rolesJson) {
+        const roles = JSON.parse(rolesJson);
+        // Directly call the navigation function without setting state
+        navigateBasedOnRoles(roles);
+      } else {
+        // Navigate to SignInScreen if there are no roles data
+        navigation.navigate("SignInScreen");
+      }
     };
 
-    checkSignInStatus();
-  }, [fadeAnim, navigation]);
+    initializeApp();
+  }, [navigation, fadeAnim]);
 
   return (
     <View style={styles.container}>
@@ -100,8 +87,6 @@ const styles = StyleSheet.create({
   logo: {
     width: "100%",
     height: "100%",
-    marginLeft: -1.5,
-    marginTop: -1.5,
   },
   text: {
     color: "white",
@@ -111,3 +96,4 @@ const styles = StyleSheet.create({
 });
 
 export default SplashScreen;
+
