@@ -1,5 +1,5 @@
 // src/navigation/AppNavigator.tsx
-import React, { useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { TouchableOpacity, View, Text, StyleSheet } from "react-native";
 import OrderProcessingScreen from "../components/order/OrderProcessingScreen";
 import ForgotPasswordScreen from "../components/auth/ForgotPasswordScreen";
@@ -13,17 +13,21 @@ import SignInScreen from "../components/auth/SignInScreen";
 import SignUpScreen from "../components/auth/SignUpScreen";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
-import BottomTabNavigator from './BottomTabNavigator';
 import { CartContext } from "../context/CartContext";
 import { AuthContext } from "../context/AuthContext";
 import Toast from 'react-native-toast-message';
+import { getData } from '../utils/Storage';
 
 const Stack = createStackNavigator();
 
 const AppNavigator = () => {
+  const [isDriver, setIsDriver] = useState(false);
+
   const { cart } = useContext(CartContext);
   const { signOut } = useContext(AuthContext);
+  
   const navigation = useNavigation();
+
   let timeoutHandle = null;
 
   const handleLogout = async () => {
@@ -46,6 +50,18 @@ const AppNavigator = () => {
       });
     }
   };
+
+  useEffect(() => {
+    const initialize = async () => {
+      const rolesData = await getData("userRoles");
+      if (rolesData) {
+        const roles = JSON.parse(rolesData);
+        setIsCustomer(roles.includes('customer'));
+      }
+    };
+
+    initialize();
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -97,7 +113,7 @@ const AppNavigator = () => {
       ),
       headerRight: () => (
         <View style={styles.iconRightContainer}>
-          <TouchableOpacity
+          {isDriver && (<TouchableOpacity
             onPress={() => navigation.navigate("CheckOutScreen")}
             style={styles.iconRight}
           >
@@ -107,7 +123,7 @@ const AppNavigator = () => {
                 <Text style={styles.cartBadgeText}>{cart.length}</Text>
               </View>
             )}
-          </TouchableOpacity>
+          </TouchableOpacity>)}
         </View>
       ),
       headerStyle: {
@@ -172,11 +188,6 @@ const AppNavigator = () => {
         component={ForgotPasswordScreen}
         options={{ headerShown: false }}
       />
-      <Stack.Screen
-        name="HomeTabs"
-        component={BottomTabNavigator}
-        options={{ headerShown: false }}
-      />
     </Stack.Navigator>
   );
 };
@@ -225,7 +236,3 @@ const styles = StyleSheet.create({
 });
 
 export default AppNavigator;
-
-// can Alert be replaced with toast
-
-// in the headerRight show the Check out logic i.e icon and screen only if the loggedin user is a customer
