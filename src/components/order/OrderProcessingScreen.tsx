@@ -1,10 +1,19 @@
-// src/components/order/OrderProcessingScreen.tsx
+// src/components/customer/OrderProcessingScreen.tsx
 import React, { useContext, useEffect, useState } from "react";
-import { View, ScrollView, TextInput, Button, StyleSheet, Text, Alert, ActivityIndicator } from "react-native";
+import {
+  View,
+  ScrollView,
+  TextInput,
+  Button,
+  StyleSheet,
+  Text,
+  ActivityIndicator,
+} from "react-native";
 import { getData } from "../../utils/Storage";
 import { CartContext } from "../../context/CartContext";
 import { LocationContext } from "../../context/LocationContext";
 import { validateTelephoneNumber } from "../../utils/Validation";
+import Toast from 'react-native-toast-message';
 import api from "../../utils/API";
 
 const OrderProcessingScreen = ({ navigation }) => {
@@ -58,15 +67,24 @@ const OrderProcessingScreen = ({ navigation }) => {
         payment,
       });
     } else {
-      // If the phone number is not valid, alert the user
-      Alert.alert("Invalid Phone Number", "Please enter a valid Kenyan phone number.");
+      Toast.show({
+        type: 'info',
+        position: 'bottom',
+        text1: 'Invalid Phone Number!',
+        text2: 'Please enter a valid Kenyan phone number',
+      });
     }
   };
 
   const submitOrder = async (orderDetails) => {
     try {
       if (!userData.customer || !userData.customer.id) {
-        Alert.alert("Customer ID is not set");
+        Toast.show({
+          type: 'info',
+          position: 'bottom',
+          text1: 'Customer ID is not set',
+          text2: 'Please provide a Customer number',
+        });
         return;
       }
 
@@ -110,17 +128,31 @@ const OrderProcessingScreen = ({ navigation }) => {
           // Navigate to a confirmation screen or reset the form
           // navigation.navigate('OrderConfirmationScreen', { transact: transact.data.data.transaction_id });
         } else {
-          Alert.alert("Transaction creation failed:", transact);
+          Toast.show({
+            type: 'info',
+            position: 'bottom',
+            text1: 'Transaction creation failed!',
+            text2: transact,
+          });
         }
-        clearCart();
+        // clearCart();
         setStep(3);
       } else {
-        Alert.alert("Invoice creation failed:", invoice);
+        Toast.show({
+          type: 'info',
+          position: 'bottom',
+          text1: 'Invoice creation failed',
+          text2: invoice,
+        });
       }
     } catch (error) {
-      Alert.alert("Error submitting orders:", error);
+      Toast.show({
+        type: 'error',
+        position: 'bottom',
+        text1: 'Error submitting orders!',
+        text2: error.message,
+      });
     }
-
     setIsProcessing(false); // End processing
   };
 
@@ -171,9 +203,7 @@ const OrderProcessingScreen = ({ navigation }) => {
                 value={location.houseNumber}
                 onChangeText={(text) => handleLocationChange("houseNumber", text)}
               />
-              <View style={styles.buttonContainer}>
-                <Button title="Next" onPress={handleLocationSubmit} color="green" />
-              </View>
+              <Text style={styles.button} onPress={handleLocationSubmit}>Next</Text>
             </View>
           </View>
         )}
@@ -181,7 +211,7 @@ const OrderProcessingScreen = ({ navigation }) => {
           <View style={styles.formCard}>
             {isProcessing && (
               <View style={styles.processingContainer}>
-                <ActivityIndicator size="large" color="green" />
+                <ActivityIndicator size="large" color="#b37400" />
                 <Text style={styles.processingText}>Processing...</Text>
               </View>
             )}
@@ -195,10 +225,8 @@ const OrderProcessingScreen = ({ navigation }) => {
                 }
                 keyboardType="phone-pad"
               />
-              <View style={styles.buttonContainer}>
-                <Button title="Previous" onPress={() => setStep(1)} color="green" />
-                <Button title="Confirm Order" onPress={handlePaymentSubmit} color="green" />
-              </View>
+              <Text style={styles.button} onPress={() => setStep(1)}>Previous</Text>
+              <Text style={styles.button} onPress={handlePaymentSubmit}>Next</Text>
             </View>
           </View>
         )}
@@ -209,21 +237,15 @@ const OrderProcessingScreen = ({ navigation }) => {
                 Order placed successfully.
               </Text>
               <Text style={styles.orderDetails}>
-                Order ID: {invoiceData._pid}
+                0rder ID: #{invoiceData._pid}
               </Text>
               <Text style={styles.orderDetails}>
-                Order Amount: KES {orderDetailsState.totalPrice.toFixed(2)}
+                Amount: {new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES' }).format(orderDetailsState.totalPrice)}
               </Text>
               <Text style={styles.emailMessage}>
-                A confirmation email has been sent to {userData.email}
+                A confirmation email has been sent {/* to {userData.email} */}
               </Text>
-              <View style={styles.buttonContainer}>
-                <Button
-                  title="View Order History"
-                  onPress={handleViewOrderHistory}
-                  color="green"
-                />
-              </View>
+              <Text style={styles.button} onPress={handleViewOrderHistory}>Orders</Text>
             </View>
           </View>
         )}
@@ -265,9 +287,7 @@ const StepIndicator = ({ currentStep }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    // padding: 10,
+    padding: 10,
     backgroundColor: "#f0ebe6",
   },
   scrollViewContent: {
@@ -306,21 +326,19 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     color: "#333",
   },
-  buttonContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    // padding: 10,
-  },
   button: {
-    backgroundColor: "green",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    backgroundColor: "#00b31a",
+    padding: 10,
     borderRadius: 5,
+    marginTop: 20,
+    color: "white",
+    textAlign: "center",
+    fontWeight: "bold",
   },
   successMessage: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "green",
+    color: "#00b31a",
     paddingBottom: 10,
   },
   orderDetails: {
@@ -329,7 +347,7 @@ const styles = StyleSheet.create({
   },
   emailMessage: {
     fontSize: 14,
-    color: "grey",
+    color: "#b37400",
     paddingTop: 10,
     paddingBottom: 20,
   },
@@ -344,20 +362,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   stepText: {
-    color: 'grey',
+    color: '#00b31a',
     fontSize: 18,
     marginBottom: 4,
   },
   currentStepText: {
-    color: 'green',
+    color: '#b37400',
     fontWeight: 'bold',
   },
   stepLabel: {
-    color: 'grey',
+    color: '#00b31a',
     fontSize: 14,
   },
   currentStepLabel: {
-    color: 'green',
+    color: '#b37400',
     fontWeight: 'bold',
   },
   processingContainer: {
@@ -369,7 +387,7 @@ const styles = StyleSheet.create({
   processingText: {
     marginTop: 10,
     fontSize: 16,
-    color: '#555',
+    color: '#b37400',
   },
 });
 

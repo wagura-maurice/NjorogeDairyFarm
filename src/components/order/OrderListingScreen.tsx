@@ -30,8 +30,8 @@ const OrderListingScreen = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
 
-  const [startDate, setStartDate] = useState(new Date());
-  const [endDate, setEndDate] = useState(new Date());
+  const [startDate, setStartDate] = useState(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000));
+  const [endDate, setEndDate] = useState(new Date());  
 
   const [isFilterVisible, setIsFilterVisible] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState('');
@@ -56,8 +56,8 @@ const OrderListingScreen = () => {
     "page[number]": 1,
     include: "order_category,produce_category,customer,driver",
     ...(selectedStatus && { "filter[_status]": selectedStatus }),
-    // ...(startDate && { "filter[date_range][start]": startDate.toISOString().substring(0, 10) }),
-    // ...(endDate && { "filter[date_range][end]": endDate.toISOString().substring(0, 10) }),
+    ...(startDate && { "filter[date_range][start]": startDate.toISOString().substring(0, 10) }),
+    ...(endDate && { "filter[date_range][end]": endDate.toISOString().substring(0, 10) }),
     ...(userData?.customer?.id && { "filter[customer_id]": userData.customer.id }),
     ...(userData?.driver?.id && { "filter[driver_id]": userData.driver.id }),
   };
@@ -165,7 +165,7 @@ const OrderListingScreen = () => {
             />
           )}
           <View style={styles.details}>
-            <Text style={styles.cardTitle}>ORDER ID: # {item._pid}</Text>
+            <Text style={styles.cardTitle}>0rder ID: #{item._pid}</Text>
             <Text style={styles.cardText}>
               Product: {toTitleCase(item.produce_category.name)}
             </Text>
@@ -208,12 +208,12 @@ const styles = StyleSheet.create({
     padding: 8,
     fontSize: 16,
     backgroundColor: '#f9f9f9',
-    marginVertical: 10,
+    marginBottom: 5,
     textAlign: 'center',
   },
   card: {
     flexDirection: 'row',
-    backgroundColor: "#fff",
+    backgroundColor: "#f9f9f9",
     borderRadius: 8,
     marginVertical: 5,
     shadowColor: "#000",
@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#007bff",
+    color: "#009a9a", // "b37400",
     marginBottom: 8,
   },
   cardText: {
@@ -244,9 +244,9 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
   status: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: "500",
-    color: "green",
+    color: "#00b31a",
     marginTop: 8,
   },
   errorText: {

@@ -14,10 +14,19 @@ import Toast from 'react-native-toast-message';
 import { getData } from '../../utils/Storage';
 import api from '../../utils/API';
 
+const STATUS_MAP = {
+  0: "PENDING",
+  1: "PROCESSING",
+  2: "PROCESSED",
+  3: "COMPLETED",
+  4: "CANCELLED",
+};
+
 const OrderDetailScreen = ({ route }) => {
   const [orderDetails, setOrderDetails] = useState(null);
   const [loading, setLoading] = useState(true);    
   const [isDriver, setIsDriver] = useState(false);
+  const [isCustomer, setIsCustomer] = useState(false);
 
   const placeholderImage = require('../../assets/img/product_placeholder.png');
   
@@ -26,7 +35,8 @@ const OrderDetailScreen = ({ route }) => {
       const rolesData = await getData("userRoles");
       if (rolesData) {
         const roles = JSON.parse(rolesData);
-        setIsDriver(roles.includes('supplier') || roles.includes('driver'));
+        setIsDriver(roles.includes('driver'));
+        setIsCustomer(roles.includes('customer'));
       }
     };
 
@@ -97,21 +107,35 @@ const OrderDetailScreen = ({ route }) => {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.header}>Order: #{orderDetails?._pid}</Text>
+      <Text style={styles.header}>0rder ID: #{orderDetails?._pid}</Text>
       <Image
         source={orderDetails?.produce_category?.image ? { uri: orderDetails?.produce_category?.image } : placeholderImage}
         style={styles.productImage}
       />
       <View style={styles.detailCard}>
         <View style={styles.detailHeader}>
-          <Icon name="person-outline" size={20} style={styles.detailIcon} />
-          <Text style={styles.detailTitle}>Customer Details</Text>
+          <Text style={styles.detailTitle}>Customer: #{orderDetails?.customer?._pid}</Text>
         </View>
-        <Text style={styles.detailInfo}>Name: {orderDetails?.customer?.client_name}</Text>
-        <Text style={styles.detailInfo}>Email: {orderDetails?.customer?.email}</Text>
-        <Text style={styles.detailInfo}>Phone: {orderDetails?.customer?.contact_number}</Text>
-        <Text style={styles.detailInfo}>Location: {orderDetails?.customer?.address}</Text>
-        <Text style={styles.detailInfo}>Address: {orderDetails?.customer?.address}</Text>
+        <View style={styles.detailRow}>
+          <Icon name="account-circle" size={25} color="#757575" />
+          <Text style={styles.detailLabel}>Name:</Text>
+          <Text style={styles.detailValue}>{orderDetails?.customer?.client_name}</Text>
+        </View>
+        <View style={styles.detailRow}>
+          <Icon name="email" size={25} color="#757575" />
+          <Text style={styles.detailLabel}>Email:</Text>
+          <Text style={styles.detailValue}>{orderDetails?.customer?.email}</Text>
+        </View>
+        <View style={styles.detailRow}>
+          <Icon name="phone" size={25} color="#757575" />
+          <Text style={styles.detailLabel}>Phone:</Text>
+          <Text style={styles.detailValue}>{orderDetails?.customer?.contact_number}</Text>
+        </View>
+        <View style={styles.detailRow}>
+          <Icon name="home" size={25} color="#757575" />
+          <Text style={styles.detailLabel}>Address:</Text>
+          <Text style={styles.detailValue}>{orderDetails?.customer?.address}</Text>
+        </View>
       </View>
       {isDriver && (<TouchableOpacity 
         style={styles.button} 
@@ -122,6 +146,13 @@ const OrderDetailScreen = ({ route }) => {
           {orderDetails._status === 3 ? 'DELIVERED' : 'MARK AS DELIVERED'}
         </Text>
       </TouchableOpacity>)}
+      {isCustomer && (
+        <View style={styles.button}>
+          <Text style={styles.buttonText}>
+            {STATUS_MAP[orderDetails._status]}
+          </Text>
+        </View>
+      )}
     </ScrollView>
   );
 };
@@ -134,13 +165,15 @@ const styles = StyleSheet.create({
   },
   container: {
     padding: 20,
-    backgroundColor: '#f5f5f5',
+    flex: 1,
+    backgroundColor: '#f0ebe6',
   },
   header: {
-    fontSize: 24,
+    fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 20,
     textAlign: 'center',
+    color: "#b37400",
   },
   productImage: {
     width: '100%',
@@ -150,7 +183,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   detailCard: {
-    backgroundColor: '#ffffff',
+    backgroundColor: '#f9f9f9',
     borderRadius: 8,
     padding: 16,
     marginBottom: 16,
@@ -165,21 +198,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
-  detailIcon: {
-    marginRight: 8,
-  },
   detailTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+    fontSize: 20,
+    fontWeight: 'bold',
+    flexDirection: 'row',
+    alignItems: 'center',
+    color: "#009a9a",
   },
-  detailInfo: {
-    fontSize: 14,
-    color: '#555',
-    marginBottom: 4,
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  detailLabel: {
+    fontWeight: 'bold',
+    color: '#212121',
+    marginLeft: 8,
+    marginRight: 4,
+  },
+  detailValue: {
+    color: '#757575',
   },
   button: {
-    backgroundColor: "green",
+    backgroundColor: "#00b31a",
     padding: 10,
     borderRadius: 5,
     marginTop: 20,
@@ -188,14 +229,6 @@ const styles = StyleSheet.create({
     color: "white",
     textAlign: "center",
     fontWeight: "bold",
-  },
-  disabledButton: {
-    backgroundColor: '#CCCCCC',
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 20,
   },
 });
 
