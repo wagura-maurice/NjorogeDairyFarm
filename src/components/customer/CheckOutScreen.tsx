@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     color: "grey",
   },
   removeButton: {
-    backgroundColor: "#ff1a1a",
+    backgroundColor: "#009a9a",
     padding: 5,
     borderRadius: 5,
   },
@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
   footer: {
     marginTop: 10,
     borderTopWidth: 1,
-    borderTopColor: "#00b31a",
+    borderTopColor: "#009a9a",
     paddingVertical: 20,
   },
   quantityButton: {
