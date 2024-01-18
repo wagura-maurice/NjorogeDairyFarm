@@ -9,7 +9,6 @@ import {
   StyleSheet,
   Image,
   RefreshControl,
-  Alert,
   TouchableOpacity,
 } from "react-native";
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -77,8 +76,6 @@ const OrderListingScreen = () => {
   }, []);
 
   const refreshOrders = () => {
-    // You can call the refresh function from useOrders hook or
-    // implement the logic to fetch orders with the new filter options here.
     setRefreshing(true);
     refresh().finally(() => setRefreshing(false));
   };
@@ -118,7 +115,7 @@ const OrderListingScreen = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View>
       <TextInput
         style={styles.searchInput}
         placeholder="Search for products ordered..."
@@ -145,12 +142,10 @@ const OrderListingScreen = () => {
             <DatePicker
               date={startDate}
               onDateChange={setStartDate}
-              // Additional props and styling
             />
             <DatePicker
               date={endDate}
               onDateChange={setEndDate}
-              // Additional props and styling
             />
           </View>
         )}
@@ -160,8 +155,8 @@ const OrderListingScreen = () => {
       keyExtractor={(item) => item._pid}
         renderItem={({ item }) => (
           <TouchableOpacity
-          onPress={() => navigateToOrderDetail(item.id)} // Use item.id or the appropriate unique identifier for navigation
-        >
+            onPress={() => navigateToOrderDetail(item.id)}
+          >
         <View style={styles.card}>
           {item.produce_category.image && (
             <Image
@@ -203,9 +198,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f0ebe6',
     paddingHorizontal: 8,
-  },
-  header: {
-    // Style for the header if needed
   },
   searchInput: {
     width: '100%',
@@ -292,7 +284,6 @@ const styles = StyleSheet.create({
   },
   picker: {
     width: '100%',
-    // Additional styling for picker
   },
 });
 
