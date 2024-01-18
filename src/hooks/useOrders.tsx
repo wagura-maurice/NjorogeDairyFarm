@@ -1,6 +1,7 @@
 // src/hooks/useOrders.tsx
-import { useState, useEffect } from "react";
-import api from "../utils/API";
+import { useState, useEffect } from 'react';
+import { Alert } from 'react-native';
+import api from '../utils/API';
 
 interface Order {
   id: number;
@@ -16,7 +17,6 @@ interface Order {
   deleted_at: string | null;
   created_at: string;
   updated_at: string;
-  // ... any other properties as per your actual order object structure
 }
 
 interface OrderResponse {
@@ -43,69 +43,76 @@ interface OrderResponse {
   };
 }
 
-interface FilterOptions {
-  [key: string]: any; // A flexible object to hold various filter criteria
-}
-
-const useOrders = (customerId?: number, filterOptions?: FilterOptions) => {
-  const [ordersResponse, setOrdersResponse] = useState<OrderResponse | null>(
-    null
-  );
+const useOrders = (filterOptions?: FilterOptions) => {
+  const [ordersResponse, setOrdersResponse] = useState<OrderResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchOrders = async () => {
+  // Function to wait for a given number of milliseconds
+  const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+  // Function to perform exponential backoff
+  const exponentialBackoff = async (attempt) => {
+    const delay = Math.pow(2, attempt) * 1000; // Exponential delay calculation
+    await wait(delay);
+  };
+
+  const fetchOrders = async (attempt = 0) => {
     setLoading(true);
     try {
-      let url = "/order/catalog";
-
-      // Array to hold query parameters
+      let url = '/order/catalog';
       const queryParams = [];
 
-      // Add customer ID to the query parameters if it's provided
-      if (customerId) {
-        queryParams.push(`filter[customer_id]=${customerId}`);
+      // Handle customer_id and driver_id in the filterOptions
+      if (filterOptions?.customer_id) {
+        queryParams.push(`filter[customer_id]=${filterOptions.customer_id}`);
       }
 
-      // Add other filter options to the query parameters
-      if (filterOptions) {
-        for (const key in filterOptions) {
-          if (filterOptions[key]) {
-            queryParams.push(
-              `${key}=${encodeURIComponent(filterOptions[key])}`
-            );
-          }
+      if (filterOptions?.driver_id) {
+        queryParams.push(`filter[driver_id]=${filterOptions.driver_id}`);
+      }
+
+      // Handle other filters
+      Object.entries(filterOptions || {}).forEach(([key, value]) => {
+        if (value && key !== 'customer_id' && key !== 'driver_id') {
+          queryParams.push(`${key}=${encodeURIComponent(value)}`);
         }
-      }
+      });
 
-      // Construct the full URL with query parameters
-      if (queryParams.length) {
-        url += `?${queryParams.join("&")}`;
-      }
+      url += queryParams.length ? `?${queryParams.join('&')}` : '';
 
       const response = await api.get(url);
       if (response && response.data) {
         setOrdersResponse(response.data);
       } else {
-        setError("No data received");
+        Alert.alert('No data received');
       }
     } catch (err) {
-      setError("Failed to fetch orders");
-      console.error(err);
+      if (err.response && err.response.status === 429 && attempt < 5) {
+        // If a 429 error is received, try again with exponential backoff
+        await exponentialBackoff(attempt);
+        fetchOrders(attempt + 1); // Retry the request with an incremented attempt count
+      } else {
+        // For other errors or if the maximum number of attempts is reached
+        setError('Failed to fetch orders: ' + err.message);
+        Alert.alert('Failed to fetch orders', err.message);
+        console.error(err);
+      }
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
-    fetchOrders();
-  }, [customerId, JSON.stringify(filterOptions)]); // Depend on both customerId and filterOptions
+    fetchOrders(); // Initial fetch without any attempts (default is 0)
+  }, [JSON.stringify(filterOptions)]);
 
   return {
     orders: ordersResponse?.data,
     pagination: ordersResponse?.meta,
     loading,
     error,
-    refresh: fetchOrders,
+    refresh: () => fetchOrders(), // Provide a way to manually refresh data
   };
 };
 
