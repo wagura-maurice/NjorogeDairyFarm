@@ -216,9 +216,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#f9f9f9",
     borderRadius: 8,
     marginVertical: 5,
-    shadowColor: "#000",
+    shadowColor: "#00b31a",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 1,
   },
@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
   status: {
     fontSize: 14,
     fontWeight: "500",
-    color: "#00b31a",
+    color: "#b37400",
     marginTop: 8,
   },
   errorText: {

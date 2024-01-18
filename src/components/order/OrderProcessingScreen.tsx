@@ -4,7 +4,6 @@ import {
   View,
   ScrollView,
   TextInput,
-  Button,
   StyleSheet,
   Text,
   ActivityIndicator,
@@ -127,12 +126,18 @@ const OrderProcessingScreen = ({ navigation }) => {
           setTransactData(transact.data.data);
           // Navigate to a confirmation screen or reset the form
           // navigation.navigate('OrderConfirmationScreen', { transact: transact.data.data.transaction_id });
+          Toast.show({
+            type: 'info',
+            position: 'bottom',
+            text1: 'Transaction initialization!',
+            text2: transact.data.message,
+          });
         } else {
           Toast.show({
             type: 'info',
             position: 'bottom',
-            text1: 'Transaction creation failed!',
-            text2: transact,
+            text1: 'Transaction initialization!',
+            text2: transact?.data?.message,
           });
         }
         // clearCart();
@@ -142,7 +147,7 @@ const OrderProcessingScreen = ({ navigation }) => {
           type: 'info',
           position: 'bottom',
           text1: 'Invoice creation failed',
-          text2: invoice,
+          text2: invoice?.throwable?.message,
         });
       }
     } catch (error) {
