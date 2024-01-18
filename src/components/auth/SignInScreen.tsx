@@ -10,40 +10,64 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { AuthContext } from "../../context/AuthContext";
-import NotificationModal from "../common/NotificationModal";
-import { validateEmail } from "../../utils/Validation";
 import CheckBox from "@react-native-community/checkbox";
+import { validateEmail } from "../../utils/Validation";
 import Icon from "react-native-vector-icons/Ionicons";
+import Toast from 'react-native-toast-message';
+import { getData } from "../../utils/Storage";
 
 const SignInScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordVisibility, setPasswordVisibility] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [modalMessage, setModalMessage] = useState("");
   const { signIn } = useContext(AuthContext);
   const navigation = useNavigation();
 
-  const handleSignIn = async () => {
-    if (!email || !validateEmail(email)) {
-      setModalMessage("Please enter a valid email address.");
-      setModalVisible(true);
-      return;
-    }
-    if (!password) {
-      setModalMessage("Please enter your password.");
-      setModalVisible(true);
-      return;
-    }
-    try {
-      await signIn(email, password);
+  // Function to navigate to the screen based on user roles
+  const navigateBasedOnRoles = (roles) => {
+    if (roles.includes('customer')) {
       navigation.navigate("MarketplaceScreen");
-    } catch (error) {
-      setModalMessage(error.message);
-      setModalVisible(true);
+    } else if (roles.includes('supplier') || roles.includes('driver')) {
+      navigation.navigate("OrderListingScreen");
     }
   };
+
+  const handleSignIn = async () => {
+    if (!email || !validateEmail(email)) {
+      Toast.show({
+        type: 'warning',
+        position: 'bottom',
+        text1: 'Please enter a valid email address',
+      });
+      return;
+    }
+
+    if (!password) {
+      Toast.show({
+        type: 'warning',
+        position: 'bottom',
+        text1: 'Please enter your password',
+      });
+      return;
+    }
+
+    try {
+      const message = await signIn(email, password);
+      Toast.show({
+        type: 'success',
+        position: 'bottom',
+        text1: message,
+      });
+      navigateBasedOnRoles(JSON.parse(await getData("userRoles")));
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        position: 'bottom',
+        text1: error.message,
+      });
+    }
+  };  
 
   const navigateToForgotPassword = () => {
     navigation.navigate("ForgotPasswordScreen");
@@ -110,12 +134,6 @@ const SignInScreen = () => {
       <Text style={styles.signUp} onPress={navigateToSignUp}>
         Don't have an account? Sign Up
       </Text>
-      <NotificationModal
-        isVisible={modalVisible}
-        message={modalMessage}
-        onClose={() => setModalVisible(false)}
-        type="danger"
-      />
     </View>
   );
 };

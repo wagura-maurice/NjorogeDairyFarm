@@ -11,35 +11,36 @@ import {
   Image,
 } from "react-native";
 import { AuthContext } from "../../context/AuthContext";
-import NotificationModal from "../common/NotificationModal";
 import { validateEmail } from "../../utils/Validation";
+import Toast from 'react-native-toast-message';
 
 const ForgotPasswordScreen = () => {
   const [email, setEmail] = useState("");
-  const [modalVisible, setModalVisible] = useState(false);
-  const [modalMessage, setModalMessage] = useState("");
   const { forgotPassword } = useContext(AuthContext);
 
-  const [modalType, setModalType] = useState("info"); // New state for modal type
-
   const handleForgotPassword = async () => {
-    if (!validateEmail(email)) {
-      // Use the validateEmail function for robust email validation
-      setModalMessage("Please enter a valid email address.");
-      setModalType("warning"); // Set the modal type to warning
-      setModalVisible(true);
+    if (!email || !validateEmail(email)) {
+      Toast.show({
+        type: 'warning',
+        position: 'bottom',
+        text1: 'Please enter a valid email address',
+      });
       return;
     }
 
     try {
       const message = await forgotPassword(email);
-      setModalMessage(message || "Password reset email sent.");
-      setModalType("success"); // Set the modal type to success
-      setModalVisible(true);
+      Toast.show({
+        type: 'success',
+        position: 'bottom',
+        text1: message,
+      });
     } catch (error) {
-      setModalMessage(error.message);
-      setModalType("danger"); // Set the modal type to danger on error
-      setModalVisible(true);
+      Toast.show({
+        type: 'error',
+        position: 'bottom',
+        text1: error.message,
+      });
     }
   };
 
@@ -57,13 +58,12 @@ const ForgotPasswordScreen = () => {
           />
         </View>
         <Text style={styles.subtitle}>
-          Forgotten your account password? Enter your email address below and
-          you'll receive a link to create a new one.
+          Forgotten your account password? Enter your email address below and you'll receive a link to create a new one.
         </Text>
         <TextInput
           style={styles.input}
           placeholder="Enter email address"
-          placeholderTextColor="#aaa" // Placeholder text color
+          placeholderTextColor="#aaa"
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
@@ -73,12 +73,6 @@ const ForgotPasswordScreen = () => {
           <Text style={styles.buttonText}>Reset Password</Text>
         </TouchableOpacity>
       </View>
-      <NotificationModal
-        isVisible={modalVisible}
-        message={modalMessage}
-        onClose={() => setModalVisible(false)}
-        type={modalType}
-      />
     </KeyboardAvoidingView>
   );
 };
@@ -86,7 +80,7 @@ const ForgotPasswordScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f0ebe6", // A soft cream background
+    backgroundColor: "#f0ebe6",
   },
   content: {
     padding: 20,
@@ -97,24 +91,24 @@ const styles = StyleSheet.create({
   circle: {
     width: 100,
     height: 100,
-    borderRadius: 50, // Half of width and height to make it a circle
+    borderRadius: 50,
     backgroundColor: "white",
     borderWidth: 5,
     borderColor: "green",
     justifyContent: "center",
     alignItems: "center",
-    overflow: "hidden", // This ensures the image does not escape the circle boundaries
-    marginBottom: 20, // Space between circle and text
+    overflow: "hidden",
+    marginBottom: 20,
   },
   logo: {
-    width: "100%", // Fill the circle
-    height: "100%", // Maintain aspect ratio
-    marginLeft: -1.5, // Move the logo to the left by 1px
-    marginTop: -1.5, // Move the logo to the top by 1px
+    width: "100%",
+    height: "100%",
+    marginLeft: -1.5,
+    marginTop: -1.5,
   },
   subtitle: {
     fontSize: 12,
-    color: "#555", // Darker grey for subtitle
+    color: "#555",
     marginBottom: 30,
     textAlign: "center",
   },

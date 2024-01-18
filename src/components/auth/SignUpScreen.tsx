@@ -8,52 +8,71 @@ import {
   StyleSheet,
   Image,
 } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import { AuthContext } from "../../context/AuthContext";
 import { validateEmail } from "../../utils/Validation";
-import { useNavigation } from "@react-navigation/native";
 import { Picker } from "@react-native-picker/picker";
-import NotificationModal from "../common/NotificationModal";
+import Toast from 'react-native-toast-message';
 
 const SignUpScreen = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("");
-  const [modalVisible, setModalVisible] = useState(false);
-  const [modalMessage, setModalMessage] = useState("");
   const { signUp } = useContext(AuthContext);
   const navigation = useNavigation();
 
   const handleSignUp = async () => {
     if (!name.trim()) {
-      setModalMessage("Please enter your name.");
-      setModalVisible(true);
+      Toast.show({
+        type: 'warning',
+        position: 'bottom',
+        text1: 'Please enter your name',
+      });
       return;
     }
+
     if (!validateEmail(email)) {
-      setModalMessage("Please enter a valid email address.");
-      setModalVisible(true);
+      Toast.show({
+        type: 'warning',
+        position: 'bottom',
+        text1: 'Please enter a valid email address',
+      });
       return;
     }
+
     if (password.length < 6) {
-      setModalMessage("Password must be at least 6 characters long.");
-      setModalVisible(true);
+      Toast.show({
+        type: 'warning',
+        position: 'bottom',
+        text1: 'Password must be at least 6 characters long',
+      });
       return;
     }
+
     if (!role) {
-      setModalMessage("Please select a role.");
-      setModalVisible(true);
+      Toast.show({
+        type: 'warning',
+        position: 'bottom',
+        text1: 'Please select a role',
+      });
       return;
     }
 
     try {
-      await signUp(name, email, password, role);
-      setModalMessage("Registration successful! You can now sign in.");
-      setModalVisible(true);
+      const message = await signUp(name, email, password, role);
+      Toast.show({
+        type: 'success',
+        position: 'bottom',
+        text1: message,
+      });
       navigation.navigate("SignInScreen");
     } catch (error) {
-      setModalMessage(error.message);
-      setModalVisible(true);
+      Toast.show({
+        type: 'error',
+        position: 'bottom',
+        text1: error.message,
+      });
     }
   };
 
@@ -106,12 +125,6 @@ const SignUpScreen = () => {
       <Text style={styles.signIn} onPress={navigateToSignIn}>
         Already have an account? Sign In
       </Text>
-      <NotificationModal
-        isVisible={modalVisible}
-        message={modalMessage}
-        onClose={() => setModalVisible(false)}
-        type="info"
-      />
     </View>
   );
 };
@@ -127,20 +140,20 @@ const styles = StyleSheet.create({
   circle: {
     width: 100,
     height: 100,
-    borderRadius: 50, // Half of width and height to make it a circle
+    borderRadius: 50,
     backgroundColor: "white",
     borderWidth: 5,
     borderColor: "green",
     justifyContent: "center",
     alignItems: "center",
-    overflow: "hidden", // This ensures the image does not escape the circle boundaries
-    marginBottom: 20, // Space between circle and text
+    overflow: "hidden",
+    marginBottom: 20,
   },
   logo: {
-    width: "100%", // Fill the circle
-    height: "100%", // Maintain aspect ratio
-    marginLeft: -1.5, // Move the logo to the left by 1px
-    marginTop: -1.5, // Move the logo to the top by 1px
+    width: "100%",
+    height: "100%",
+    marginLeft: -1.5,
+    marginTop: -1.5,
   },
   input: {
     width: "100%",
