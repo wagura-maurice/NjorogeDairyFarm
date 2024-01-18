@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
   },
   card: {
     flex: 1,
-    margin: 8,
+    margin: 5,
     borderRadius: 8,
     backgroundColor: '#f9f9f9',
     shadowColor: '#000',

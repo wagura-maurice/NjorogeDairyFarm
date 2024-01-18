@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
   },
   card: {
     flexDirection: "row",
-    marginVertical: 8,
+    marginVertical: 5,
     borderRadius: 8,
     backgroundColor: "#f9f9f9",
     shadowColor: "#000",
@@ -187,6 +187,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   footer: {
+    marginTop: 10,
     borderTopWidth: 1,
     borderTopColor: "grey",
     paddingVertical: 20,
