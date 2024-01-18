@@ -21,7 +21,7 @@ import { getData } from '../utils/Storage';
 const Stack = createStackNavigator();
 
 const AppNavigator = () => {
-  const [isDriver, setIsDriver] = useState(false);
+  const [isCustomer, setIsCustomer] = useState(false);
 
   const { cart } = useContext(CartContext);
   const { signOut } = useContext(AuthContext);
@@ -59,9 +59,9 @@ const AppNavigator = () => {
         setIsCustomer(roles.includes('customer'));
       }
     };
-
+  
     initialize();
-  }, []);
+  }, []);  
 
   useEffect(() => {
     return () => {
@@ -94,36 +94,60 @@ const AppNavigator = () => {
       return authenticatedScreens.includes(previousRouteName);
     };
 
+    // This function determines the icon and the navigation target
+    const getHeaderRightIconAndAction = () => {
+      let iconName = "cart-outline";
+      let action = () => navigation.navigate("CheckOutScreen");
+
+      if (isCustomer) {
+        if (route.name === "MarketplaceScreen") {
+          action = () => navigation.navigate("CheckOutScreen");
+        } else if (
+          route.name === "CheckOutScreen" ||
+          route.name === "OrderProcessingScreen" ||
+          route.name === "OrderListingScreen" ||
+          route.name === "OrderDetailScreen"
+        ) {
+          iconName = "home-outline";
+          action = () => navigation.navigate("MarketplaceScreen");
+        }
+      }
+
+      return { iconName, action };
+    };
+
     return {
       headerLeft: () => (
         canGoBackToAuthenticatedScreen() ? (
           <TouchableOpacity style={styles.iconLeft} onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back-outline" size={30} color="#000" />
+            <Ionicons name="arrow-back-outline" size={30} color="#b37400" />
           </TouchableOpacity>
         ) : (
           <TouchableOpacity style={styles.iconLeft} onPress={handleLogout}>
-            <Ionicons name="power-outline" size={30} color="#000" />
+            <Ionicons name="power-outline" size={30} color="#b37400" />
           </TouchableOpacity>
         )
       ),
       headerTitle: () => (
         <View style={styles.headerTitle}>
-          <Text style={styles.headerTitleText}>NJOROGE DAIRY FARM</Text>
+          <Text style={styles.headerTitleText}>      NJOROGE DAIRY FARM</Text>
         </View>
       ),
       headerRight: () => (
         <View style={styles.iconRightContainer}>
-          {isDriver && (<TouchableOpacity
-            onPress={() => navigation.navigate("CheckOutScreen")}
-            style={styles.iconRight}
-          >
-            <Ionicons name="cart-outline" size={30} color="#000" />
-            {cart.length > 0 && (
-              <View style={styles.cartBadge}>
-                <Text style={styles.cartBadgeText}>{cart.length}</Text>
-              </View>
-            )}
-          </TouchableOpacity>)}
+          {isCustomer && (
+            <TouchableOpacity
+              onPress={getHeaderRightIconAndAction().action}
+              style={styles.iconRight}
+            >
+              <Ionicons name={getHeaderRightIconAndAction().iconName} size={30} color="#b37400" />
+              {cart.length > 0 && route.name === "MarketplaceScreen" && (
+                <View style={styles.cartBadge}>
+                  <Text style={styles.cartBadgeText}>{cart.length}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          )}
         </View>
       ),
       headerStyle: {
@@ -195,7 +219,7 @@ const AppNavigator = () => {
 const styles = StyleSheet.create({
   iconLeft: {
     paddingLeft: 16,
-    width: 50, // Adjust the width to match the headerRight button width
+    width: 50,
   },
   headerTitle: {
     justifyContent: "center",
@@ -205,11 +229,12 @@ const styles = StyleSheet.create({
   headerTitleText: {
     fontWeight: "bold",
     fontSize: 18,
-    textTransform: "uppercase",
-    textAlign: "center", // Ensure the text itself is centered within the title view
+    textAlign: "center",
+    color: "#00b31a",
   },
   iconRightContainer: {
     paddingRight: 16,
+    width: 50,
     flexDirection: "row",
     alignItems: "center",
   },
