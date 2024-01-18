@@ -11,12 +11,11 @@ export const AuthProvider = ({ children }) => {
       const response = await api.post("/auth/sign-in", { email, password });
       if (response.data.status === "success") {
         const { user, accessToken } = response.data.data;
-        await storeData("userData", JSON.stringify(user));
-        await storeData("userToken", accessToken);
-        // await storeData('userRoles', JSON.stringify(user.roles));
-        const roleNames = user.roles.map((role) => role.name);
-        await storeData("userRoles", JSON.stringify(roleNames));
-        return "Sign In Successful";
+        await storeData('userData', JSON.stringify(user));
+        await storeData('userToken', accessToken);
+        const roleNames = user.roles.map(role => role.name);
+        await storeData('userRoles', JSON.stringify(roleNames));
+        return 'Sign In Successful';
       } else {
         throw new Error(response.data.message);
       }
@@ -37,7 +36,8 @@ export const AuthProvider = ({ children }) => {
         const { user, accessToken } = response.data.data;
         await storeData("userData", JSON.stringify(user));
         await storeData("userToken", accessToken);
-        await storeData("userRoles", JSON.stringify(user.roles));
+        const roleNames = user.roles.map(role => role.name);
+        await storeData('userRoles', JSON.stringify(roleNames));
         return "Sign Up Successful";
       } else {
         throw new Error(response.data.message);
