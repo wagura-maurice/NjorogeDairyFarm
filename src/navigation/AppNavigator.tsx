@@ -1,45 +1,49 @@
 // src/navigation/AppNavigator.tsx
-import React, { useContext, useState, useEffect } from "react";
-import { createStackNavigator } from "@react-navigation/stack";
+import React, { useContext, useEffect } from "react";
 import { TouchableOpacity, View, Text, StyleSheet } from "react-native";
-import Ionicons from "react-native-vector-icons/Ionicons";
+import OrderProcessingScreen from "../components/order/OrderProcessingScreen";
+import ForgotPasswordScreen from "../components/auth/ForgotPasswordScreen";
 import MarketplaceScreen from "../components/customer/MarketplaceScreen";
+import OrderListingScreen from "../components/order/OrderListingScreen";
+import OrderDetailScreen from "../components/order/OrderDetailScreen";
 import CheckOutScreen from "../components/customer/CheckOutScreen";
-import OrderProcessingScreen from "../components/customer/OrderProcessingScreen";
-import OrderListingScreen from "../components/customer/OrderListingScreen";
-import ProfileScreen from "../components/common/ProfileScreen";
+import { createStackNavigator } from "@react-navigation/stack";
 import SplashScreen from "../components/common/SplashScreen";
 import SignInScreen from "../components/auth/SignInScreen";
 import SignUpScreen from "../components/auth/SignUpScreen";
-import ForgotPasswordScreen from "../components/auth/ForgotPasswordScreen";
-import NotificationModal from "../components/common/NotificationModal";
-import { CartContext } from "../context/CartContext";
-import { AuthContext } from "../context/AuthContext";
+import Ionicons from "react-native-vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
 import BottomTabNavigator from './BottomTabNavigator';
+import { CartContext } from "../context/CartContext";
+import { AuthContext } from "../context/AuthContext";
+import Toast from 'react-native-toast-message';
 
 const Stack = createStackNavigator();
 
 const AppNavigator = () => {
-  const { cart } = useContext(CartContext); // Using the cart context
+  const { cart } = useContext(CartContext);
   const { signOut } = useContext(AuthContext);
   const navigation = useNavigation();
-  const [modalVisible, setModalVisible] = useState(false);
-  const [modalMessage, setModalMessage] = useState("");
-
   let timeoutHandle = null;
 
   const handleLogout = async () => {
     try {
       await signOut();
-      setModalMessage("You have been successfully logged out.");
-      setModalVisible(true);
+      Toast.show({
+        type: 'success',
+        position: 'bottom',
+        text1: 'You have been successfully logged out.',
+      });
       timeoutHandle = setTimeout(() => {
         navigation.navigate("SignInScreen");
       }, 1500);
     } catch (error) {
-      setModalMessage(error.message || "An error occurred during logout.");
-      setModalVisible(true);
+      Toast.show({
+        type: 'error',
+        position: 'bottom',
+        text1: 'An error occurred during logout:',
+        text2: error.message
+      });
     }
   };
 
@@ -58,7 +62,7 @@ const AppNavigator = () => {
       "CheckOutScreen",
       "OrderProcessingScreen",
       "OrderListingScreen",
-      "ProfileScreen",
+      "OrderDetailScreen",
     ];
 
     // Function to check if the previous route is an authenticated screen
@@ -109,12 +113,12 @@ const AppNavigator = () => {
       headerStyle: {
         elevation: 0, // Remove shadow on Android
         shadowOpacity: 0, // Remove shadow on iOS
-        backgroundColor: "#f0ebe6", // Set your desired color here
+        backgroundColor: "#f0ebe6",
       },
-      headerTintColor: "#ffffff", // Set the color of the back button and title, if necessary
+      headerTintColor: "#ffffff",
       headerTitleStyle: {
         fontWeight: "bold",
-        color: "#ffffff", // This sets the header title color to white
+        color: "#ffffff",
       },
     };
   };
@@ -143,11 +147,10 @@ const AppNavigator = () => {
         options={authScreenOptions}
       />
       <Stack.Screen
-        name="ProfileScreen"
-        component={ProfileScreen}
+        name="OrderDetailScreen"
+        component={OrderDetailScreen}
         options={authScreenOptions}
       />
-
       {/* Non-Authenticated Screens without the header */}
       <Stack.Screen
         name="SplashScreen"
@@ -222,3 +225,7 @@ const styles = StyleSheet.create({
 });
 
 export default AppNavigator;
+
+// can Alert be replaced with toast
+
+// in the headerRight show the Check out logic i.e icon and screen only if the loggedin user is a customer
