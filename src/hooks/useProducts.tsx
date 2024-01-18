@@ -26,7 +26,7 @@ const useProducts = () => {
         setError("No data received");
       }
     } catch (err) {
-      setError("Failed to fetch products");
+      setError("Failed to fetch products: " + err.message);
     }
     setLoading(false);
   };

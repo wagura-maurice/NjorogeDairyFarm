@@ -1,6 +1,5 @@
 // src/hooks/useOrders.tsx
 import { useState, useEffect } from 'react';
-import { Alert } from 'react-native';
 import api from '../utils/API';
 
 interface Order {
@@ -85,7 +84,7 @@ const useOrders = (filterOptions?: FilterOptions) => {
       if (response && response.data) {
         setOrdersResponse(response.data);
       } else {
-        Alert.alert('No data received');
+        setError('No data received');
       }
     } catch (err) {
       if (err.response && err.response.status === 429 && attempt < 5) {
@@ -95,8 +94,6 @@ const useOrders = (filterOptions?: FilterOptions) => {
       } else {
         // For other errors or if the maximum number of attempts is reached
         setError('Failed to fetch orders: ' + err.message);
-        Alert.alert('Failed to fetch orders', err.message);
-        console.error(err);
       }
     } finally {
       setLoading(false);
