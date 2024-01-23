@@ -6,6 +6,8 @@ import ForgotPasswordScreen from "../components/auth/ForgotPasswordScreen";
 import MarketplaceScreen from "../components/customer/MarketplaceScreen";
 import OrderListingScreen from "../components/order/OrderListingScreen";
 import OrderDetailScreen from "../components/order/OrderDetailScreen";
+import InventoryListingScreen from "../components/inventory/InventoryListingScreen";
+import InventoryDetailScreen from "../components/inventory/InventoryDetailScreen";
 import CheckOutScreen from "../components/customer/CheckOutScreen";
 import { createStackNavigator } from "@react-navigation/stack";
 import SplashScreen from "../components/common/SplashScreen";
@@ -79,6 +81,8 @@ const AppNavigator = () => {
       "OrderProcessingScreen",
       "OrderListingScreen",
       "OrderDetailScreen",
+      "InventoryListingScreen",
+      "InventoryDetailScreen",
     ];
 
     // Function to check if the previous route is an authenticated screen
@@ -106,7 +110,9 @@ const AppNavigator = () => {
           route.name === "CheckOutScreen" ||
           route.name === "OrderProcessingScreen" ||
           route.name === "OrderListingScreen" ||
-          route.name === "OrderDetailScreen"
+          route.name === "OrderDetailScreen" ||
+          route.name === "InventoryListingScreen" ||
+          route.name === "InventoryDetailScreen"
         ) {
           iconName = "home-outline";
           action = () => navigation.navigate("MarketplaceScreen");
