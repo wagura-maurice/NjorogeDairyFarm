@@ -42,6 +42,13 @@ const OrderListingScreen = () => {
     navigation.navigate('OrderDetailScreen', { orderId });
   };
 
+  // Helper function to add days to a date
+  const addDays = (date, days) => {
+    const result = new Date(date);
+    result.setDate(result.getDate() + days);
+    return result;
+  };
+
   // Status mapping
   const STATUS_MAP = {
     0: "PENDING",
@@ -56,8 +63,8 @@ const OrderListingScreen = () => {
     "page[number]": 1,
     include: "order_category,produce_category,customer,driver",
     ...(selectedStatus && { "filter[_status]": selectedStatus }),
-    ...(startDate && { "filter[date_range][start]": startDate.toISOString().substring(0, 10) }),
-    ...(endDate && { "filter[date_range][end]": endDate.toISOString().substring(0, 10) }),
+    ...(startDate && { "filter[_timestamp][start]": startDate.toISOString().substring(0, 10) }),
+    ...(endDate && { "filter[date_range][end]": addDays(endDate, 1).toISOString().substring(0, 10) }),
     ...(userData?.customer?.id && { "filter[customer_id]": userData.customer.id }),
     ...(userData?.driver?.id && { "filter[driver_id]": userData.driver.id }),
   };
@@ -173,7 +180,7 @@ const OrderListingScreen = () => {
               Quantity: {Number(item.quantity).toFixed(2)}
             </Text>
             <Text style={styles.cardText}>
-              Total Amount: KES {item.total_amount}
+              Total Amount: KES {Number(item.total_amount).toFixed(2)}
             </Text>
             <Text style={styles.status}>{STATUS_MAP[item._status]}</Text>
           </View>
