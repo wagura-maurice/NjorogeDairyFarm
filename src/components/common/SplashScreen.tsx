@@ -12,7 +12,9 @@ const SplashScreen = () => {
   const navigateBasedOnRoles = (roles) => {
     if (roles.includes('customer')) {
       navigation.navigate("MarketplaceScreen");
-    } else if (roles.includes('supplier') || roles.includes('driver')) {
+    } else if (roles.includes('supplier')) {
+      navigation.navigate("InventoryListingScreen");
+    } else if (roles.includes('driver')) {
       navigation.navigate("OrderListingScreen");
     }
   };
