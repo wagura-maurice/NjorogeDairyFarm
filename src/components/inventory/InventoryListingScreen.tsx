@@ -13,10 +13,10 @@ import {
 } from "react-native";
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
+import useInventories from "../../hooks/useInventories";
 import { Picker } from '@react-native-picker/picker';
 import DatePicker from 'react-native-date-picker';
 import { getData } from "../../utils/Storage";
-import useInventories from "../../hooks/useInventories";
 
 const toTitleCase = (str) => {
   return str.replace(/\w\S*/g, (txt) => {
@@ -41,19 +41,31 @@ const InventoryListingScreen = () => {
     navigation.navigate('InventoryDetailScreen', { inventoryId });
   };
 
+  const addDays = (date, days) => {
+    const result = new Date(date);
+    result.setDate(result.getDate() + days);
+    return result;
+  };
+
+  const placeholderImage = require('../../assets/img/product_placeholder.png');
+
   const STATUS_MAP = {
-    0: "AVAILABLE",
-    1: "OUT_OF_STOCK",
-    // Add more status mappings as needed
+    0: "PENDING",
+    1: "PROCESSING",
+    2: "AVAILABLE",
+    3: "OUT OF STOCK",
   };
 
   const filterOptions = {
     "page[number]": 1,
     include: "category,supplier",
-    // Add more filter options as needed
+    ...(selectedStatus && { "filter[_status]": selectedStatus }),
+    ...(startDate && { "filter[_timestamp][start]": startDate.toISOString().substring(0, 10) }),
+    ...(endDate && { "filter[_timestamp][end]": addDays(endDate, 1).toISOString().substring(0, 10) }),
+    ...(userData?.supplier?.id && { "filter[supplier_id]": userData.supplier.id }),
   };
 
-  const { inventories, loading, error, refresh } = useInventories(filterOptions);
+  const { inventories, loading, error, refresh: refreshInventories } = useInventories(filterOptions);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -61,34 +73,15 @@ const InventoryListingScreen = () => {
       const userData = userDataJson ? JSON.parse(userDataJson) : null;
       setUserData(userData);
     };
-
+  
     fetchData();
   }, []);
 
-  const refreshInventories = () => {
-    setRefreshing(true);
-    refresh().finally(() => setRefreshing(false));
-  };
-  
-  useEffect(() => {
-    refreshInventories();
-  }, [selectedStatus, startDate, endDate]);
-
   const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
     refreshInventories();
+    setRefreshing(false);
   }, [refreshInventories]);
-  
-  if (loading) {
-    return <ActivityIndicator size="large" color="#0000ff" />;
-  }
-
-  if (error) {
-    return (
-      <View style={styles.centered}>
-        <Text style={styles.noInventories}>Failed to load inventory item(s): {error}</Text>
-      </View>
-    );
-  }
 
   const handleStatusChange = (itemValue, itemIndex) => {
     setSelectedStatus(itemValue);
@@ -98,64 +91,85 @@ const InventoryListingScreen = () => {
     setIsFilterVisible(!isFilterVisible);
   };
 
-  const filteredInventories = searchQuery
-    ? inventories.filter((inventory) => inventory.category.name.toLowerCase().includes(searchQuery.toLowerCase()))
-    : inventories;
-
   return (
     <View style={styles.container}>
       <View>
-      <TextInput
-        style={styles.searchInput}
-        placeholder="Search for inventory items..."
-        onChangeText={setSearchQuery}
-        value={searchQuery}
-      />
-      <Icon
-        name="arrow-drop-down"
-        size={24}
-        onPress={toggleFilterCard}
-        style={styles.iconStyle}
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search for inventory items..."
+          onChangeText={setSearchQuery}
+          value={searchQuery}
+        />
+        <Icon
+          name="arrow-drop-down"
+          size={24}
+          onPress={toggleFilterCard}
+          style={styles.iconStyle}
         />
         {isFilterVisible && (
           <View style={styles.filterCard}>
-            {/* Add filter components for inventory status, date range, etc. as needed */}
+            <Picker
+              selectedValue={selectedStatus}
+              onValueChange={handleStatusChange}
+              style={styles.picker}
+            >
+              {Object.entries(STATUS_MAP).map(([status, description]) => (
+                <Picker.Item key={status} label={description} value={status} />
+              ))}
+            </Picker>
+            <DatePicker
+              date={startDate}
+              onDateChange={setStartDate}
+            />
+            <DatePicker
+              date={endDate}
+              onDateChange={setEndDate}
+            />
           </View>
         )}
-    </View>
-    <FlatList
-      data={filteredInventories}
-      keyExtractor={(item) => item.id.toString()}
-      renderItem={({ item }) => (
-        <TouchableOpacity
-          onPress={() => navigateToInventoryDetail(item.id)}
-        >
-          <View style={styles.card}>
-            {/* Adjust the inventory item properties based on the actual structure */}
-            <View style={styles.details}>
-              <Text style={styles.cardTitle}>Inventory ID: #{item.id}</Text>
-              <Text style={styles.cardText}>
-                Product: {toTitleCase(item.category.name)}
-              </Text>
-              <Text style={styles.cardText}>
-                Quantity: {item.quantity}
-              </Text>
-              {/* Add more inventory item details as needed */}
-              <Text style={styles.status}>{STATUS_MAP[item.status]}</Text>
+      </View>
+      <FlatList
+        data={inventories}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            onPress={() => navigateToInventoryDetail(item.id)}
+          >
+            <View style={styles.card}>
+              {item.category.image ? (
+                <Image
+                  source={{ uri: item?.category?.image }}
+                  style={styles.productImage}
+                />
+              ) : (
+                <Image
+                  source={placeholderImage}
+                  style={styles.productImage}
+                />
+              )}
+              <View style={styles.details}>
+                <Text style={styles.cardTitle}>Inventory ID: #{item._pid}</Text>
+                <Text style={styles.cardText}>
+                  Product: {toTitleCase(item.category.name)}
+                </Text>
+                <Text style={styles.cardText}>
+                  Quantity: {Number(item.quantity).toFixed(2)}
+                </Text>
+                <Text style={styles.status}>{STATUS_MAP[item._status]}</Text>
+              </View>
             </View>
-          </View>
-        </TouchableOpacity>
-      )}
-      ListEmptyComponent={<Text style={styles.noInventories}>No inventory item(s) found. Please try again later!</Text>}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          colors={["#9Bd35A", "#689F38"]}
-        />
-      }
-    />
-  </View>
+          </TouchableOpacity>
+        )}
+        ListEmptyComponent={<Text style={styles.noInventories}>No inventory item(s) found. Please try again later!</Text>}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={["#9Bd35A", "#689F38"]}
+          />
+        }
+      />
+    </View>
   );
 };
 
@@ -187,6 +201,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 1,
+  },
+  productImage: {
+    width: 100,
+    height: '100%',
+    borderTopLeftRadius: 8,
+    borderBottomLeftRadius: 8,
   },
   details: {
     flex: 1,
