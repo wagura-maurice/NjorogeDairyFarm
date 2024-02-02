@@ -2,6 +2,12 @@
 import { useState, useEffect } from 'react';
 import api from '../utils/API';
 
+interface FilterOptions {
+  category_id?: number;
+  supplier_id?: number;
+  // Add any other filter options as needed
+}
+
 interface Inventory {
   id: number;
   _pid: string;
@@ -17,8 +23,9 @@ interface Inventory {
   updated_at: string;
   category: {
     id: number;
-    title: string;
+    name: string;
     slug: string;
+    image: string;
     description: string;
   };
   supplier: {
@@ -62,59 +69,87 @@ interface InventoryResponse {
   };
 }
 
-interface FilterOptions {
-  // Define your filter options here
-}
-
 const useInventories = (filterOptions?: FilterOptions) => {
   const [inventoriesResponse, setInventoriesResponse] = useState<InventoryResponse | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(true);
+  const [fetchedOnce, setFetchedOnce] = useState(false); // Track if API has been called
 
-  // Function to wait for a given number of milliseconds
-  const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-  // Function to perform exponential backoff
-  const exponentialBackoff = async (attempt) => {
-    const delay = Math.pow(2, attempt) * 1000; // Exponential delay calculation
+  const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+  const exponentialBackoff = async (attempt: number) => {
+    const delay = Math.pow(2, attempt) * 1000;
     await wait(delay);
   };
 
   const fetchInventories = async (attempt = 0) => {
     setLoading(true);
     try {
-      const url = '/api/inventory/catalog?include=category,supplier';
+      let url = '/inventory/catalog';
+      const queryParams = [];
+
+      if (filterOptions?.category_id) {
+        queryParams.push(`filter[category_id]=${filterOptions.category_id}`);
+      }
+
+      /* if (filterOptions?.supplier_id) {
+        queryParams.push(`filter[supplier_id]=${filterOptions.supplier_id}`);
+      } */
+
+      Object.entries(filterOptions || {}).forEach(([key, value]) => {
+        if (value && key !== 'category_id' && key !== 'supplier_id') {
+          queryParams.push(`${key}=${encodeURIComponent(value)}`);
+        }
+      });
+
+      url += queryParams.length ? `?${queryParams.join('&')}` : '';
 
       const response = await api.get(url);
-      if (response && response.data) {
+      if (response && response.data && mounted) { // Check if the component is still mounted
         setInventoriesResponse(response.data);
+        setFetchedOnce(true); // Set fetchedOnce to true after the first successful API call
+      } else if (!mounted) {
+        // Component unmounted, do nothing
       } else {
         setError('No data received');
       }
     } catch (err) {
       if (err.response && err.response.status === 429 && attempt < 5) {
-        // If a 429 error is received, try again with exponential backoff
         await exponentialBackoff(attempt);
-        fetchInventories(attempt + 1); // Retry the request with an incremented attempt count
+        fetchInventories(attempt + 1);
       } else {
-        // For other errors or if the maximum number of attempts is reached
         setError('Failed to fetch inventories: ' + err.message);
       }
     } finally {
-      setLoading(false);
+      if (mounted) { // Check if the component is still mounted
+        setLoading(false);
+      }
+    }
+  };
+
+  const refresh = () => {
+    if (filterOptions) {
+      fetchInventories();
     }
   };
 
   useEffect(() => {
-    fetchInventories(); // Initial fetch without any attempts (default is 0)
+    setMounted(true); // Component mounted
+    return () => setMounted(false); // Component unmounted
   }, []);
+
+  useEffect(() => {
+    if (filterOptions && !fetchedOnce) { // Check if filterOptions is truthy and API hasn't been called yet
+      fetchInventories();
+    }
+  }, [filterOptions, mounted, fetchedOnce]);
 
   return {
     inventories: inventoriesResponse?.data,
     pagination: inventoriesResponse?.meta,
     loading,
     error,
-    refresh: () => fetchInventories(), // Provide a way to manually refresh data
+    refresh,
   };
 };
 
