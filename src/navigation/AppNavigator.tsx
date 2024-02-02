@@ -1,13 +1,13 @@
 // src/navigation/AppNavigator.tsx
 import React, { useState, useContext, useEffect } from "react";
 import { TouchableOpacity, View, Text, StyleSheet } from "react-native";
+import InventoryListingScreen from "../components/inventory/InventoryListingScreen";
+import InventoryDetailScreen from "../components/inventory/InventoryDetailScreen";
 import OrderProcessingScreen from "../components/order/OrderProcessingScreen";
 import ForgotPasswordScreen from "../components/auth/ForgotPasswordScreen";
 import MarketplaceScreen from "../components/customer/MarketplaceScreen";
 import OrderListingScreen from "../components/order/OrderListingScreen";
 import OrderDetailScreen from "../components/order/OrderDetailScreen";
-import InventoryListingScreen from "../components/inventory/InventoryListingScreen";
-import InventoryDetailScreen from "../components/inventory/InventoryDetailScreen";
 import CheckOutScreen from "../components/customer/CheckOutScreen";
 import { createStackNavigator } from "@react-navigation/stack";
 import SplashScreen from "../components/common/SplashScreen";
@@ -195,6 +195,16 @@ const AppNavigator = () => {
       <Stack.Screen
         name="OrderDetailScreen"
         component={OrderDetailScreen}
+        options={authScreenOptions}
+      />
+      <Stack.Screen
+        name="InventoryListingScreen"
+        component={InventoryListingScreen}
+        options={authScreenOptions}
+      />
+      <Stack.Screen
+        name="InventoryDetailScreen"
+        component={InventoryDetailScreen}
         options={authScreenOptions}
       />
       {/* Non-Authenticated Screens without the header */}
