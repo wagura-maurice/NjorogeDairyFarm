@@ -1,32 +1,42 @@
-// src/utils/Storage.tsx
-import AsyncStorage from "@react-native-async-storage/async-storage";
+// src/utils/Storage.ts
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const storeData = async (key: string, value: string) => {
+/**
+ * Stores data in AsyncStorage.
+ * @param key The key under which to store the value.
+ * @param value The value to store (must be a string).
+ */
+const storeData = async (key: string, value: string): Promise<void> => {
   try {
     await AsyncStorage.setItem(key, value);
   } catch (error) {
-    throw new Error("AsyncStorage Error: " + error.message);
+    console.error(`AsyncStorage Error: ${error.message}`);
   }
 };
 
-const getData = async (key: string) => {
+/**
+ * Retrieves data from AsyncStorage.
+ * @param key The key under which the value is stored.
+ */
+const getData = async (key: string): Promise<string | null> => {
   try {
     const value = await AsyncStorage.getItem(key);
-    if (value !== null) {
-      return value;
-    } else {
-      return null;
-    }
+    return value;
   } catch (error) {
-    throw new Error("AsyncStorage Error: " + error.message);
+    console.error(`AsyncStorage Error: ${error.message}`);
+    return null;
   }
 };
 
-const removeData = async (key: string) => {
+/**
+ * Removes data from AsyncStorage.
+ * @param key The key under which the value is stored that should be removed.
+ */
+const removeData = async (key: string): Promise<void> => {
   try {
     await AsyncStorage.removeItem(key);
   } catch (error) {
-    throw new Error("AsyncStorage Error: " + error.message);
+    console.error(`AsyncStorage Error: ${error.message}`);
   }
 };
 
