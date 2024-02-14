@@ -1,5 +1,5 @@
 // src/components/inventory/InventoryDetailScreen.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -15,19 +15,34 @@ import Toast from 'react-native-toast-message';
 import { getData } from '../../utils/Storage';
 import api from '../../utils/API';
 
-const STATUS_MAP = {
+const INVENTORY_STATUS_MAP = {
   0: "PENDING",
   1: "PROCESSING",
-  2: "AVAILABLE",
-  3: "OUT OF STOCK",
+  2: "PROCESSED",
+  3: "COMPLETED",
+  4: "CANCELLED",
+};
+
+const INVOICE_STATUS_MAP = {
+  0: "PENDING",
+  1: "PROCESSING",
+  2: "PROCESSED",
+  3: "REJECTED",
+  4: "ACCEPTED",
 };
 
 const InventoryDetailScreen = ({ route }) => {
-  const [inventoryDetails, setInventoryDetails] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [userData, setUserData] = useState(null);
   const [isSupplier, setIsSupplier] = useState(false);
   const [quotePrice, setQuotePrice] = useState('');
+  const [currentInvoice, setCurrentInvoice] = useState(null);
+  const [inventoryDetails, setInventoryDetails] = useState(null);
+  const [inventoryId, setInventoryId] = useState(route.params?.inventoryId);
+  const [supplierId, setSupplierId] = useState(null);
+  const [userIsSupplierOfItem, setUserIsSupplierOfItem] = useState(false);
 
+  const scrollViewRef = useRef(null);
   const placeholderImage = require('../../assets/img/product_placeholder.png');
 
   useEffect(() => {
@@ -37,21 +52,67 @@ const InventoryDetailScreen = ({ route }) => {
         const roles = JSON.parse(rolesData);
         setIsSupplier(roles.includes('supplier'));
       }
+
+      const userDataJson = await getData("userData");
+      if (userDataJson) {
+        const parsedData = JSON.parse(userDataJson);
+        setUserData(parsedData);
+      }
     };
 
     initialize();
   }, []);
 
   useEffect(() => {
-    const inventoryId = route.params?.inventoryId;
-    fetchInventoryDetails(inventoryId);
-  }, [route.params]);
+    setSupplierId(userData?.supplier?.id);
+  }, [userData]);
 
-  const fetchInventoryDetails = async (inventoryId) => {
+  useEffect(() => {
+    fetchInventoryDetails(inventoryId, supplierId);
+  }, [supplierId]);
+
+  useEffect(() => {
+    const initialize = async () => {
+      setUserIsSupplierOfItem(inventoryDetails?.supplier?.id === supplierId);
+    };
+
+    initialize();
+  }, [inventoryDetails, supplierId]);
+
+  const fetchInventoryDetails = async (inventory_id, supplier_id = null) => {
     try {
-      const response = await api.get(`/inventory/catalog/${inventoryId}?include=category,supplier`);
-      console.log(response.data.data);
-      setInventoryDetails(response.data.data);
+      const response = await api.get(`/inventory/catalog/${inventory_id}?include=category,supplier,invoices`);
+      let inventoryData = response.data.data;
+  
+      let filteredInvoices;
+      // Check if supplier_id is provided and not null or empty
+      if (supplier_id) {
+        // Filter invoices by supplier ID of the logged-in user
+        filteredInvoices = inventoryData.invoices.filter(invoice => invoice.supplier_id === supplier_id);
+      } else {
+        // If no supplier_id is provided, use all invoices
+        // filteredInvoices = inventoryData.invoices;
+      }
+
+      if (filteredInvoices) {
+        // Sort by 'created_at' to get the latest invoice
+        filteredInvoices.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        const currentInvoice = filteredInvoices[0]; // The latest invoice is now the first item
+    
+        // Set the current invoice and other inventory details
+        setInventoryDetails({
+          ...inventoryData,
+          currentInvoice,
+        });
+    
+        // Set the initial quote price to the latest invoice's payable amount
+        if (currentInvoice) {
+          setQuotePrice(currentInvoice.payable);
+          setCurrentInvoice(currentInvoice);
+        }
+      } else {
+        setInventoryDetails(inventoryData);
+      }
     } catch (error) {
       Toast.show({
         type: 'error',
@@ -63,32 +124,7 @@ const InventoryDetailScreen = ({ route }) => {
       setLoading(false);
     }
   };
-
-  const markAsDelivered = async () => {
-    try {
-      const payload = {
-        _status: 3, // The new status you want to set for the inventory
-      };
-      await api.patch(`/inventory/catalog/${inventoryDetails.id}`, payload);
-      setInventoryDetails((prevDetails) => ({
-        ...prevDetails,
-        _status: 3, // Update the local status to match the payload sent
-      }));
-      Toast.show({
-        type: 'success',
-        position: 'bottom',
-        text1: 'Inventory has been marked as delivered!',
-      });
-    } catch (error) {
-      Toast.show({
-        type: 'error',
-        position: 'bottom',
-        text1: 'Failed to update inventory status:',
-        text2: error.message
-      });
-    }
-  };
-
+  
   const submitQuote = async () => {
     if (!quotePrice) {
       Toast.show({
@@ -98,24 +134,71 @@ const InventoryDetailScreen = ({ route }) => {
       });
       return;
     }
-
+  
     try {
       await api.post('invoice/catalog', {
-        category_id: 1, // Assuming debit category ID
+        category_id: 1, // Replace with actual category ID if necessary
         payable: quotePrice,
-        _inventories: [inventoryDetails._pid],
+        _inventories: [inventoryDetails?._pid],
+        supplier_id: supplierId, // Use the supplier ID of the logged-in user
       });
-
+  
       Toast.show({
         type: 'success',
         position: 'bottom',
         text1: 'Quote submitted successfully!',
       });
+  
+      fetchInventoryDetails(inventoryId, supplierId);
     } catch (error) {
       Toast.show({
         type: 'error',
         position: 'bottom',
         text1: 'Failed to submit quote:',
+        text2: error.message,
+      });
+    }
+  };
+  
+
+  const markAsCompleted = async () => {
+    if (!inventoryId || !supplierId) {
+      Toast.show({
+        type: 'error',
+        position: 'bottom',
+        text1: 'Missing inventory or supplier information.',
+      });
+      return;
+    }
+
+    if (!userIsSupplierOfItem) {
+      Toast.show({
+        type: 'error',
+        position: 'bottom',
+        text1: 'You do not have permission to complete this action.',
+      });
+      return;
+    }
+
+    try {
+      // Assuming the API endpoint to mark inventory as completed is `/inventory/mark-completed`
+      await api.put(`/inventory/catalog/${inventoryId}`, {
+        _status: 4,
+      });
+
+      Toast.show({
+        type: 'success',
+        position: 'bottom',
+        text1: 'Inventory marked as completed successfully!',
+      });
+
+      // Optionally, refresh the inventory details to reflect the new status
+      fetchInventoryDetails(inventoryId, supplierId);
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        position: 'bottom',
+        text1: 'Failed to mark inventory as completed:',
         text2: error.message,
       });
     }
@@ -132,52 +215,97 @@ const InventoryDetailScreen = ({ route }) => {
   if (!inventoryDetails) {
     return (
       <View style={styles.centered}>
-        <Text>No inventory details available.</Text>
+        <Text style={styles.centeredText}>No inventory details available.</Text>
       </View>
     );
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView
+        ref={scrollViewRef}
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
+      >
       <View style={styles.imageContainer}>
-        {inventoryDetails.category.image ? (
-          <Image
-            source={{ uri: inventoryDetails?.category?.image }}
-            style={styles.productImage}
-          />
-        ) : (
-          <Image
-            source={placeholderImage}
-            style={styles.productImage}
-          />
-        )}
+        <Image
+          source={inventoryDetails?.category?.image ? { uri: inventoryDetails?.category?.image } : placeholderImage}
+          style={styles.productImage}
+        />
+        <Text style={styles.watermark}>
+          #{inventoryDetails?._pid}
+        </Text>
       </View>
+
       <View style={styles.detailsContainer}>
-        <Text style={styles.detailTitle}>Inventory ID: #{inventoryDetails._pid}</Text>
-        <Text style={styles.detailText}>Product: {inventoryDetails.name}</Text>
-        <Text style={styles.detailText}>Quantity: {Number(inventoryDetails.quantity).toFixed(2)}</Text>
-        <Text style={styles.detailText}>Price: {new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES' }).format(inventoryDetails.price)}</Text>
-        <Text style={styles.detailText}>Category: {inventoryDetails?.category?.name}</Text>
-        <Text style={styles.detailText}>Supplier: {inventoryDetails?.supplier?.company_name}</Text>
-      </View>
-      {isSupplier && inventoryDetails._status === 0 && (
-        <>
-          <TextInput
-            style={styles.quoteInput}
-            placeholder="Enter Quoted Price"
-            keyboardType="numeric"
-            value={quotePrice}
-            onChangeText={setQuotePrice}
-          />
+        {/* <Text style={styles.detailTitle}>inventory item: #{inventoryDetails?._pid}</Text> */}
+        <Text style={styles.detailTitle}>{inventoryDetails?.name}</Text>
+        <Text style={styles.detailText}>inventory category: {inventoryDetails?.category?.name}</Text>
+        <Text style={styles.detailText}>unit quantity: {Number(inventoryDetails?.quantity).toFixed(2)}</Text>
+        <Text style={styles.detailText}>unit price: {new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES' }).format(inventoryDetails?.price)}</Text>
+        {userIsSupplierOfItem && (<Text style={styles.detailText}>active supplier: {inventoryDetails?.supplier?.company_name}</Text>)}
+        <Text style={styles.pid}>{INVENTORY_STATUS_MAP[inventoryDetails?._status] || 'Unknown'}</Text>
+        {userIsSupplierOfItem && inventoryDetails?.currentInvoice?._status === 4 && (
           <TouchableOpacity
             style={styles.button}
-            onPress={submitQuote}
+            onPress={markAsCompleted}
+            disabled={!inventoryId || !supplierId} // Button is disabled if either ID is not available
           >
-            <Text style={styles.buttonText}>Submit Quote/Invoice</Text>
-          </TouchableOpacity>
-        </>
-      )}
-    </ScrollView>
+            <Text style={styles.buttonText}>Mark as Completed</Text>
+          </TouchableOpacity>        
+        )}
+        {isSupplier && supplierId && inventoryDetails?._status !== 3 && (
+          <View>
+            <TextInput
+              style={styles.quoteInput}
+              placeholder="Enter quote price"
+              keyboardType="numeric"
+              value={null}
+              onChangeText={(text) => {
+                const numericValue = parseFloat(text);
+                if (!isNaN(numericValue) || text === '') {
+                  setQuotePrice(text); // Set to text, allowing any numeric value
+                } else {
+                  Toast.show({
+                    type: 'error',
+                    position: 'bottom',
+                    text1: 'Please enter a valid numeric value.',
+                  });
+                }
+              }}
+            />            
+            <TouchableOpacity
+              style={styles.button}
+              onPress={submitQuote}
+            >
+              <Text style={styles.buttonText}>Quote</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        {currentInvoice && (
+          <View style={styles.quotedPriceContainer}>
+            <Text style={styles.detailSubTitle}>current quote:</Text>
+            <Text style={styles.detailText}>
+              {new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES' }).format(quotePrice ?? currentInvoice?.payable)}
+            </Text>
+            <Text style={styles.detailText}>
+              {new Intl.DateTimeFormat('en-KE', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric', 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit' 
+              }).format(new Date(currentInvoice?._timestamp ?? null))}
+            </Text>
+            {currentInvoice?.supplier?.company_name && (<Text style={styles.detailText}>{currentInvoice?.supplier?.company_name}</Text>)}
+            <Text style={styles.status}>{INVOICE_STATUS_MAP[currentInvoice?._status] || 'Unknown'}</Text>
+            <View style={styles.statusAndPidContainer}>
+              <Text style={styles.pid}>#{currentInvoice?._pid}</Text>
+            </View>
+          </View>
+        )}
+      </View>
+      </ScrollView>
   );
 };
 
@@ -185,28 +313,42 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f0ebe6',
-    paddingHorizontal: 8,
+    paddingHorizontal: 10,
   },
   imageContainer: {
     backgroundColor: "#f9f9f9",
     borderRadius: 8,
     overflow: 'hidden',
-    marginVertical: 10,
+    marginVertical: 5,
     shadowColor: "#00b31a",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 1,
+    position: 'relative', // Ensure the container is relative for absolute positioning of children
   },
   productImage: {
     width: '100%',
     height: 200,
+    resizeMode: 'cover',
+  },
+  watermark: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -50 }, { translateY: -50 }],
+    color: 'white',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    padding: 8,
+    borderRadius: 5,
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   detailsContainer: {
     backgroundColor: "#f9f9f9",
     borderRadius: 8,
     padding: 10,
-    marginVertical: 10,
+    marginVertical: 5,
     shadowColor: "#00b31a",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
@@ -214,25 +356,72 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   detailTitle: {
-    fontSize: 18,
+    textTransform: "capitalize",
+    fontWeight: 'bold',
+    fontSize: 16,
+    marginBottom: 5,
+    color: "#009a9a",
+  },
+  detailSubTitle: {
+    fontSize: 10,
     fontWeight: "bold",
+    textTransform: "uppercase",
     color: "#009a9a",
     marginBottom: 8,
   },
   detailText: {
+    textTransform: "capitalize",
     fontSize: 14,
-    marginBottom: 5,
+    marginBottom: 2,
+  },
+  statusAndPidContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    position: 'absolute',
+    bottom: 10, // You can adjust this value to increase the space from the bottom
+    right: 10,
+  },
+  status: {
+    marginTop: 2,
+    fontSize: 10,
+    fontWeight: "bold",
+    textTransform: "uppercase",
+    color: "#00b31a",
+  },
+  pid: {
+    marginTop: 2,
+    fontSize: 10,
+    fontWeight: "bold",
+    textTransform: "uppercase",
+    color: "#b37400",
+  },
+  quotedPriceContainer: {
+    backgroundColor: "#f9f9f9",
+    borderRadius: 8,
+    padding: 10,
+    marginVertical: 10,
+    shadowColor: "#00b31a",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 1,
   },
   centered: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  centeredText: {
+    fontSize: 14,
+    fontWeight: "bold",
+  },
   button: {
     backgroundColor: "#00b31a",
     padding: 10,
     borderRadius: 5,
-    marginTop: 20,
+    marginTop: 10,
+    marginBottom: 5,
   },
   buttonText: {
     color: "white",
@@ -240,12 +429,15 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   quoteInput: {
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
-    borderRadius: 5,
-    paddingLeft: 8,
-    marginBottom: 10,
+    borderColor: '#ccc',
+    borderWidth: 2.5,
+    borderRadius: 15,
+    padding: 10,
+    fontSize: 16,
+    backgroundColor: '#f9f9f9',
+    marginTop: 15,
+    marginBottom: 15,
+    textAlign: 'center',
   },
 });
 
