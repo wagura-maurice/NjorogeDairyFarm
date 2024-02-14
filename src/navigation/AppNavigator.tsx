@@ -24,6 +24,7 @@ const Stack = createStackNavigator();
 
 const AppNavigator = () => {
   const [isCustomer, setIsCustomer] = useState(false);
+  const [userData, setUserData] = useState(null);
 
   const { cart } = useContext(CartContext);
   const { signOut } = useContext(AuthContext);
@@ -56,14 +57,16 @@ const AppNavigator = () => {
   useEffect(() => {
     const initialize = async () => {
       const rolesData = await getData("userRoles");
-      if (rolesData) {
+      const userDataJson = await getData("userData");
+      if (rolesData && userDataJson) {
         const roles = JSON.parse(rolesData);
+        const userDataParsed = JSON.parse(userDataJson);
         setIsCustomer(roles.includes('customer'));
+        setUserData(userDataParsed);
       }
     };
-  
     initialize();
-  }, []);  
+  }, []);
 
   useEffect(() => {
     return () => {
