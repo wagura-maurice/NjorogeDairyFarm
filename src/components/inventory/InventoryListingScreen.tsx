@@ -139,7 +139,7 @@ const InventoryListingScreen = () => {
         <Text style={styles.cardTitle}>{item.name}{/*  - ({item.id}:{item?.supplier?.id}) */}</Text>
         <Text style={styles.cardText}>Category: {item?.category?.name}</Text>
         <Text style={styles.cardText}>Quantity: {Number(item.quantity).toFixed(2)}</Text>
-        <Text style={styles.cardText}>Price: {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(item.price)}</Text>
+        <Text style={styles.cardText}>Price: {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'KES' }).format(item.price)}</Text>
         <Text style={styles.status}>{STATUS_MAP[item._status] || 'Unknown'}</Text>
       </View>
       <View style={styles.statusAndPidContainer}>
