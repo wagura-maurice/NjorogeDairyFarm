@@ -1,201 +1,267 @@
 // src/components/order/OrderListingScreen.tsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from 'react';
 import {
-  View,
-  Text,
-  TextInput,
-  FlatList,
-  ActivityIndicator,
-  StyleSheet,
-  Image,
-  RefreshControl,
-  TouchableOpacity,
-} from "react-native";
+  View, Text, TextInput, FlatList, ActivityIndicator, StyleSheet,
+  Image, RefreshControl, TouchableOpacity, Animated
+} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
 import DatePicker from 'react-native-date-picker';
-import { getData } from "../../utils/Storage";
-import useOrders from "../../hooks/useOrders";
+import Toast from 'react-native-toast-message';
+import { getData } from '../../utils/Storage';
+import api from '../../utils/API';
 
-// Function to convert strings to title case
-const toTitleCase = (str) => {
-  return str.replace(/\w\S*/g, (txt) => {
-    return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-  });
+const placeholderImage = require('../../assets/img/product_placeholder.png');
+const STATUS_MAP = {
+  "": "ALL",
+  0: "PENDING",
+  1: "PROCESSING",
+  2: "PROCESSED",
+  3: "COMPLETED",
+  4: "CANCELLED",
 };
 
 const OrderListingScreen = () => {
-  const [userData, setUserData] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [refreshing, setRefreshing] = useState(false);
-
-  const [startDate, setStartDate] = useState(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000));
-  const [endDate, setEndDate] = useState(new Date());  
-
-  const [isFilterVisible, setIsFilterVisible] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState('');
-
+  const [startDate, setStartDate] = useState(new Date(new Date().setMonth(new Date().getMonth() - 1)));
+  const [endDate, setEndDate] = useState(new Date());
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [isFilterVisible, setIsFilterVisible] = useState(false);
+  const [isDatePickerVisible, setDatePickerVisible] = useState(false);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [lastPage, setLastPage] = useState(null);
   const navigation = useNavigation();
+  const flatListRef = useRef(null);
 
-  const navigateToOrderDetail = (orderId) => {
-    navigation.navigate('OrderDetailScreen', { orderId });
-  };
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 
-  // Helper function to add days to a date
-  const addDays = (date, days) => {
-    const result = new Date(date);
-    result.setDate(result.getDate() + days);
-    return result;
-  };
-
-  // Status mapping
-  const STATUS_MAP = {
-    0: "PENDING",
-    1: "PROCESSING",
-    2: "PROCESSED",
-    3: "COMPLETED",
-    4: "CANCELLED",
-  };
-
-  // Prepare filter options for useOrders hook
-  const filterOptions = {
-    "page[number]": 1,
-    include: "order_category,produce_category,customer,driver",
-    ...(selectedStatus && { "filter[_status]": selectedStatus }),
-    ...(startDate && { "filter[_timestamp][start]": startDate.toISOString().substring(0, 10) }),
-    ...(endDate && { "filter[date_range][end]": addDays(endDate, 1).toISOString().substring(0, 10) }),
-    ...(userData?.customer?.id && { "filter[customer_id]": userData.customer.id }),
-    ...(userData?.driver?.id && { "filter[driver_id]": userData.driver.id }),
-  };
-
-  // Call useOrders with the updated filter options
-  const { orders, loading, error, refresh } = useOrders(filterOptions);
+  const [isDriver, setIsDriver] = useState(false);
+  const [isCustomer, setIsCustomer] = useState(false);
+  const [userData, setUserData] = useState(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const userDataJson = await getData("userData");
-      const userData = userDataJson ? JSON.parse(userDataJson) : null;
+    const initialize = async () => {
+      const rolesData = await getData("userRoles");
+      if (rolesData) {
+        const roles = JSON.parse(rolesData);
+        setIsDriver(roles.includes('driver'));
+        setIsCustomer(roles.includes('customer'));
+      }
+
+      const userDataJson = await getData("userData"); // Get user data from storage
+      const userData = userDataJson ? JSON.parse(userDataJson) : null; // Parse user data
       setUserData(userData);
     };
 
-    fetchData();
+    initialize();
   }, []);
 
-  const refreshOrders = () => {
-    setRefreshing(true);
-    refresh().finally(() => setRefreshing(false));
-  };
+  // Function to fetch orders
+  const fetchOrders = async (pageNumber = 1, status = selectedStatus, start = startDate, end = endDate, isLoadMore = false) => {
+    if (loading && !isLoadMore) return; // Prevent multiple loads
+    setLoading(true);
+    setIsFetchingMore(isLoadMore);
   
-  // Use useEffect to call refreshOrders when filters change
+    try {
+      // Start constructing the query string
+      let queryParams = `page[number]=${encodeURIComponent(pageNumber)}&include=order_category,produce_category,customer,driver`;
+  
+      if (selectedStatus) {
+        queryParams += `&filter[_status]=${encodeURIComponent(selectedStatus)}`;
+      }
+      queryParams += `&filter[_timestamp][start]=${encodeURIComponent(startDate.toISOString().substring(0, 10))}`;
+      queryParams += `&filter[_timestamp][end]=${encodeURIComponent(endDate.toISOString().substring(0, 10))}`;
+
+      if (isCustomer) {
+        queryParams += `&filter[customer_id]=${encodeURIComponent(userData?.customer?.id)}`;
+      }
+      
+      if (isDriver) {
+        queryParams += `&filter[driver_id]=${encodeURIComponent(userData?.driver?.id)}`;
+      }
+  
+      // Make the API call using the api utility
+      const response = await api.get(`/order/catalog?${queryParams}`);
+      const jsonResponse = response.data;
+      setOrders(isLoadMore ? [...orders, ...jsonResponse.data] : jsonResponse.data);
+      setCurrentPage(jsonResponse.meta.current_page);
+      setLastPage(jsonResponse.meta.last_page);
+  
+      // Scroll to the last item of the newly fetched data
+      if (isLoadMore) {
+        flatListRef.current.scrollToIndex({ index: orders.length - 1 });
+      }
+    } catch (error) {
+      console.log(error);
+      Toast.show({
+        type: 'error',
+        position: 'bottom',
+        text1: 'Error',
+        text2: `An error occurred: ${error.message}`,
+      });
+    } finally {
+      setLoading(false);
+      setIsFetchingMore(false);
+    }
+  };  
+
   useEffect(() => {
-    refreshOrders();
+    fetchOrders(); // Initial fetch
+  }, []);
+
+  useEffect(() => {
+    if (startDate > endDate) {
+      Toast.show({
+        type: 'error',
+        position: 'bottom',
+        text1: 'Invalid Date Range',
+        text2: 'Start date cannot be later than end date.',
+      });
+    } else {
+      fetchOrders(1); // Fetch with the first page and applied filters
+    }
   }, [selectedStatus, startDate, endDate]);
-
-  const onRefresh = React.useCallback(() => {
-    refreshOrders();
-  }, [refreshOrders]);
   
-  if (loading) {
-    return <ActivityIndicator size="large" color="#0000ff" />;
-  }
-
-  if (error) {
-    return (
-      <View style={styles.centered}>
-        <Text style={styles.noOrders}>Failed to load order(s): {error}</Text>
-      </View>
-    );
-  }
-
-  const handleStatusChange = (itemValue, itemIndex) => {
-    setSelectedStatus(itemValue);
+  const onRefresh = () => {
+    fetchOrders(1); // Always refresh with the first page
   };
-
+  
+  const loadMore = () => {
+    if (currentPage < lastPage && !isFetchingMore) {
+      fetchOrders(currentPage + 1, true);
+    }
+  };
+  
   const toggleFilterCard = () => {
     setIsFilterVisible(!isFilterVisible);
   };
+  
+  const clearFilters = () => {
+    setSearchQuery('');
+    setSelectedStatus('');
+    setStartDate(new Date(new Date().setMonth(new Date().getMonth() - 1)));
+    setEndDate(new Date());
+    setIsFilterVisible(false);
+    setCurrentPage(1);
+    setLastPage(null);
+  };
 
-  const filteredOrders = searchQuery
-    ? orders.filter((order) => order.produce_category.name.toLowerCase().includes(searchQuery.toLowerCase()))
+  const data = searchQuery
+    ? orders.filter((order) =>
+      (order.order_category.name && order.order_category.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (order.produce_category && order.produce_category.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    )
     : orders;
+  
+  const OrderItem = ({ item }) => (
+  <TouchableOpacity onPress={() => navigation.navigate('OrderDetailScreen', { orderId: item.id })}>
+    <View style={styles.card}>
+      <Image
+      source={item?.produce_category?.image ? { uri: item.produce_category.image } : placeholderImage}
+      style={styles.productImage}
+      />
+      <View style={styles.details}>
+          <Text style={styles.cardTitle}>{item.produce_category.name} - ({item.id}:{item?.customer?.id}:{item?.driver?.id})</Text>
+        <Text style={styles.cardText}>category: {item?.order_category?.name}</Text>
+        <Text style={styles.cardText}>quantity: {Number(item.quantity).toFixed(2)}</Text>
+        <Text style={styles.cardText}>total amount: {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(item.total_amount)}</Text>
+        <Text style={styles.status}>{STATUS_MAP[item._status] || 'Unknown'}</Text>
+      </View>
+      <View style={styles.statusAndPidContainer}>
+        <Text style={styles.pid}>#{item._pid}</Text>
+      </View>
+    </View>
+  </TouchableOpacity>
+  );
+  
+  const renderItem = ({ item }) => <OrderItem item={item} />;
+  
+  const renderFooter = () => {
+    if (!isFetchingMore) return null;
+
+    return (
+      <View style={styles.loadingFooter}>
+        <ActivityIndicator size="small" color="#0000ff" />
+        <Text style={styles.loadingFooterText}>Loading more...</Text>
+      </View>
+    );
+  };
 
   return (
     <View style={styles.container}>
-      <View>
-      <TextInput
-        style={styles.searchInput}
-        placeholder="Search for products ordered..."
-        onChangeText={setSearchQuery}
-        value={searchQuery}
-      />
-      <Icon
-        name="arrow-drop-down"
-        size={24}
-        onPress={toggleFilterCard}
-        style={styles.iconStyle}
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search order listings..."
+          onChangeText={setSearchQuery}
+          value={searchQuery}
         />
-        {isFilterVisible && (
-          <View style={styles.filterCard}>
-            <Picker
-              selectedValue={selectedStatus}
-              onValueChange={handleStatusChange}
-              style={styles.picker}
-            >
-              {Object.entries(STATUS_MAP).map(([status, description]) => (
-                <Picker.Item key={status} label={description} value={status} />
-              ))}
-            </Picker>
-            <DatePicker
-              date={startDate}
-              onDateChange={setStartDate}
-            />
-            <DatePicker
-              date={endDate}
-              onDateChange={setEndDate}
-            />
-          </View>
-        )}
-    </View>
-    <FlatList
-      data={filteredOrders}
-      keyExtractor={(item) => item._pid}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            onPress={() => navigateToOrderDetail(item.id)}
+        <TouchableOpacity onPress={toggleFilterCard} style={styles.filterIcon}>
+          <Icon name={isFilterVisible ? "close" : "filter-list"} size={24} color="#b37400" />
+        </TouchableOpacity>
+      </View>
+      {isFilterVisible && (
+        <View style={styles.filterCard}>
+          <Text style={styles.filterTitle}>Filter By:</Text>
+          <Picker
+            selectedValue={selectedStatus}
+            onValueChange={(itemValue) => setSelectedStatus(itemValue)}
+            style={styles.picker}
           >
-        <View style={styles.card}>
-          {item.produce_category.image && (
-            <Image
-              source={{ uri: item.produce_category.image }}
-              style={styles.productImage}
-            />
-          )}
-          <View style={styles.details}>
-            <Text style={styles.cardTitle}>0rder ID: #{item._pid}</Text>
-            <Text style={styles.cardText}>
-              Product: {toTitleCase(item.produce_category.name)}
-            </Text>
-            <Text style={styles.cardText}>
-              Quantity: {Number(item.quantity).toFixed(2)}
-            </Text>
-            <Text style={styles.cardText}>
-              Total Amount: KES {Number(item.total_amount).toFixed(2)}
-            </Text>
-            <Text style={styles.status}>{STATUS_MAP[item._status]}</Text>
-          </View>
+            {Object.entries(STATUS_MAP).map(([value, label]) => (
+              <Picker.Item key={value} label={label} value={value} />
+            ))}
+          </Picker>
+          <TouchableOpacity onPress={() => setDatePickerVisible(true)} style={styles.datePickerButton}>
+            <Text style={styles.datePickerButtonText}>Select Date Range</Text>
+          </TouchableOpacity>
+          {isDatePickerVisible && (
+            <View>
+              <DatePicker
+                mode="date"
+                date={startDate}
+                onDateChange={setStartDate}
+              />
+              <DatePicker
+                mode="date"
+                date={endDate}
+                onDateChange={setEndDate}
+              />
             </View>
+          )}
+          <View style={styles.dateConfirmButtons}>
+            <TouchableOpacity onPress={clearFilters} style={styles.clearFiltersButton}>
+              <Text style={styles.clearFiltersButtonText}>Clear Filters</Text>
             </TouchableOpacity>
+          </View>
+        </View>
       )}
-      ListEmptyComponent={<Text style={styles.noOrders}>No order(s) found. Please try again later!</Text>}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={["#9Bd35A", "#689F38"]}
-          />
-        }
-      />
+      {loading ? (
+        <ActivityIndicator size="large" color="#0000ff" style={styles.activityIndicator} />
+      ) : (
+        <AnimatedFlatList
+          ref={flatListRef}
+          data={data}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={renderItem}
+          ListEmptyComponent={<Text style={styles.noOrders}>No order items found.</Text>}
+          refreshControl={
+            <RefreshControl refreshing={loading && !isFetchingMore} onRefresh={onRefresh} />
+          }
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.1}
+          ListFooterComponent={renderFooter}
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+            { useNativeDriver: true }
+          )}
+        />
+      )}
     </View>
   );
 };
@@ -203,95 +269,150 @@ const OrderListingScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f0ebe6',
-    paddingHorizontal: 8,
+    backgroundColor: '#f0f0f0',
+    paddingHorizontal: 10,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    position: 'relative',
+    paddingBottom: 5,
   },
   searchInput: {
-    width: '100%',
-    height: 50,
+    flex: 1,
+    marginRight: 10,
+    paddingRight: 35,
+    paddingLeft: 10,
     borderColor: '#ccc',
     borderWidth: 2.5,
     borderRadius: 15,
-    padding: 8,
+    padding: 10,
     fontSize: 16,
     backgroundColor: '#f9f9f9',
     marginBottom: 5,
     textAlign: 'center',
   },
+  filterIcon: {
+    position: 'absolute',
+    right: 10,
+    height: '100%',
+    justifyContent: 'center',
+    paddingHorizontal: 10,
+  },
+  filterCard: {
+    padding: 10,
+    backgroundColor: '#ffffff',
+    borderRadius: 5,
+    marginTop: 5,
+    marginBottom: 5,
+  },
+  filterTitle: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    textTransform: "uppercase",
+    marginBottom: 5,
+    color: "#b37400",
+  },
+  picker: {
+    marginBottom: 10,
+  },
+  datePickerButton: {
+    backgroundColor: '#dddddd',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  datePickerButtonText: {
+    fontSize: 16,
+  },
+  clearFiltersButton: {
+    backgroundColor: '#F44336',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  clearFiltersButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },  
   card: {
     flexDirection: 'row',
-    backgroundColor: "#f9f9f9",
-    borderRadius: 8,
+    backgroundColor: '#ffffff',
+    padding: 10,
     marginVertical: 5,
-    shadowColor: "#00b31a",
+    borderRadius: 5,
+    elevation: 3,
+    shadowColor: '#00b31a',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 1,
-  },
-  productImage: {
-    width: 100,
-    height: "100%",
-    borderTopLeftRadius: 8,
-    borderBottomLeftRadius: 8,
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   details: {
     flex: 1,
-    padding: 10,
     justifyContent: 'space-between',
   },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#009a9a", // "b37400",
-    marginBottom: 8,
-  },
-  cardText: {
-    fontSize: 14,
-    marginBottom: 3,
+  statusAndPidContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    position: 'absolute',
+    bottom: 10,
+    right: 10,
   },
   status: {
-    fontSize: 14,
-    fontWeight: "500",
+    marginTop: 2,
+    fontSize: 10,
+    fontWeight: "bold",
+    textTransform: "uppercase",
+    color: "#00b31a",
+  },
+  pid: {
+    marginTop: 2,
+    fontSize: 10,
+    fontWeight: "bold",
+    textTransform: "uppercase",
     color: "#b37400",
-    marginTop: 8,
   },
-  errorText: {
-    color: "red",
+  productImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 5,
+    marginRight: 10,
+  },
+  cardTitle: {
+    textTransform: "capitalize",
+    fontWeight: 'bold',
     fontSize: 16,
-    textAlign: "center",
-    marginTop: 20,
+    marginBottom: 5,
+    color: "#009a9a",
   },
-  centered: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+  cardText: {
+    textTransform: "capitalize",
+    fontSize: 14,
+    marginBottom: 2,
   },
   noOrders: {
     textAlign: 'center',
-    fontSize: 18,
-    color: '#888',
-    marginTop: 50,
+    marginTop: 20,
   },
-  iconStyle: {
-    position: 'absolute',
-    right: 10,
-    top: 10,
+  activityIndicator: {
+    marginTop: 20,
   },
-  filterCard: {
-    backgroundColor: 'white',
-    padding: 15,
-    borderRadius: 10,
-    margin: 10,
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    shadowColor: 'black',
-    shadowOffset: { height: 0, width: 0 },
-    elevation: 3,
+  loadingFooter: {
+    paddingVertical: 20,
+    alignItems: 'center',
+    justifyContent: 'center'
   },
-  picker: {
-    width: '100%',
-  },
+  loadingFooterText: {
+    marginTop: 10,
+    fontSize: 14,
+    color: '#555' // Set the color that suits your app theme
+  }
 });
 
 export default OrderListingScreen;
