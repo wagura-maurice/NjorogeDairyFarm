@@ -169,7 +169,7 @@ const OrderListingScreen = () => {
           <Text style={styles.cardTitle}>{item.produce_category.name} - ({item.id}:{item?.customer?.id}:{item?.driver?.id})</Text>
         <Text style={styles.cardText}>category: {item?.order_category?.name}</Text>
         <Text style={styles.cardText}>quantity: {Number(item.quantity).toFixed(2)}</Text>
-        <Text style={styles.cardText}>total amount: {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(item.total_amount)}</Text>
+        <Text style={styles.cardText}>total amount: {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'KES' }).format(item.total_amount)}</Text>
         <Text style={styles.status}>{STATUS_MAP[item._status] || 'Unknown'}</Text>
       </View>
       <View style={styles.statusAndPidContainer}>
