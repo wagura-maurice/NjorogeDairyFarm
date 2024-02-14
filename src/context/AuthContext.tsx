@@ -60,6 +60,18 @@ export const AuthProvider = ({ children }) => {
       await removeData("userData");
       await removeData("userToken");
       await removeData("userRoles");
+
+      // Perform a check to see if the data is still there
+      const userData = await getData("userData");
+      const userToken = await getData("userToken");
+      const userRoles = await getData("userRoles");
+
+      if (userData || userToken || userRoles) {
+        // If any of the data still exists, throw an error
+        throw new Error("Failed to clear all user data on sign out.");
+      }
+
+      // If the data has been successfully removed, proceed
       return "Sign Out Successful";
     } catch (error) {
       throw error;
