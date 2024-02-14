@@ -5,7 +5,7 @@ import { getData } from "./Storage"; // Assume this securely retrieves the token
 
 // Create an Axios instance with the base URL from the environment variable
 const api = axios.create({
-  baseURL: "https://f603-197-237-23-183.ngrok-free.app/api", // Config.REACT_APP_API_URL, // Use the environment variable
+  baseURL: "http://dairy.waguramaurice.com/api", // Config.REACT_APP_API_URL, // Use the environment variable
   timeout: 10000, // Sets a timeout of 10 seconds for all requests
   headers: {
     'Content-Type': 'application/json', // Sets default content type for all requests
